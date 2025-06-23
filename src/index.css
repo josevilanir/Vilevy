@@ -112,7 +112,7 @@
   }
   
   .cute-shadow {
-    box-shadow: 0 8px 25px -5px rgba(34, 197, 94, 0.3), 0 4px 6px -2px rgba(20, 184, 166, 0.2);
+    box-shadow: 0 8px 25px -5px rgba(147, 51, 234, 0.3), 0 4px 6px -2px rgba(139, 92, 246, 0.2);
   }
   
   .bounce-cute {
@@ -152,16 +152,16 @@
 }
 
 ::-webkit-scrollbar-track {
-  background: #f0fdf4;
+  background: #faf5ff;
   border-radius: 10px;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: linear-gradient(45deg, #22c55e, #14b8a6);
+  background: linear-gradient(45deg, #a855f7, #8b5cf6);
   border-radius: 10px;
-  border: 2px solid #f0fdf4;
+  border: 2px solid #faf5ff;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(45deg, #16a34a, #0d9488);
+  background: linear-gradient(45deg, #9333ea, #7c3aed);
 }

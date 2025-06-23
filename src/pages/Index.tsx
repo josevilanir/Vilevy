@@ -88,10 +88,10 @@ const Index = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-100 via-blue-50 to-teal-100 p-4">
+    <div className="min-h-screen bg-gradient-to-br from-purple-100 via-pink-50 to-violet-100 p-4">
       {/* Cute header with pixel art koala */}
       <div className="max-w-6xl mx-auto mb-8">
-        <div className="bg-white rounded-lg shadow-lg border-4 border-green-200 p-6 relative overflow-hidden">
+        <div className="bg-white rounded-lg shadow-lg border-4 border-purple-200 p-6 relative overflow-hidden">
           {/* Pixel art koala decoration */}
           <div className="absolute top-2 right-2">
             <div className="relative">
@@ -109,9 +109,9 @@ const Index = () => {
           </div>
           
           <div className="flex items-center gap-3 mb-4">
-            <Heart className="text-green-500 w-8 h-8" />
-            <h1 className="text-4xl font-bold text-green-600 font-mono">
-              🐨💚 Our Koala Photo Album 💚🐨
+            <Heart className="text-purple-500 w-8 h-8" />
+            <h1 className="text-4xl font-bold text-purple-600 font-mono">
+              🐨💜 Our Koala Photo Album 💜🐨
             </h1>
           </div>
           <p className="text-gray-600 text-lg">
@@ -123,7 +123,7 @@ const Index = () => {
       <div className="max-w-6xl mx-auto">
         {/* Upload area */}
         <Card className={`mb-8 border-4 transition-all duration-300 ${
-          dragActive ? 'border-green-400 bg-green-50' : 'border-teal-200 bg-white'
+          dragActive ? 'border-purple-400 bg-purple-50' : 'border-violet-200 bg-white'
         }`}>
           <div
             className="p-12 text-center cursor-pointer"
@@ -132,8 +132,8 @@ const Index = () => {
             onDragOver={handleDrag}
             onDrop={handleDrop}
           >
-            <ImageIcon className="mx-auto w-16 h-16 text-teal-400 mb-4" />
-            <h3 className="text-2xl font-bold text-teal-600 mb-2">
+            <ImageIcon className="mx-auto w-16 h-16 text-violet-400 mb-4" />
+            <h3 className="text-2xl font-bold text-violet-600 mb-2">
               Drop your photos here! 📸
             </h3>
             <p className="text-gray-600 mb-6">
@@ -148,7 +148,7 @@ const Index = () => {
               id="photo-upload"
             />
             <label htmlFor="photo-upload">
-              <Button className="bg-green-500 hover:bg-green-600 text-white px-8 py-3 rounded-full cursor-pointer">
+              <Button className="bg-purple-500 hover:bg-purple-600 text-white px-8 py-3 rounded-full cursor-pointer">
                 Choose Photos 🌿
               </Button>
             </label>
@@ -159,7 +159,7 @@ const Index = () => {
         {photos.length > 0 && (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {photos.map((photo) => (
-              <Card key={photo.id} className="bg-white border-4 border-blue-200 overflow-hidden hover:border-green-300 transition-all duration-300 hover:scale-105">
+              <Card key={photo.id} className="bg-white border-4 border-pink-200 overflow-hidden hover:border-purple-300 transition-all duration-300 hover:scale-105">
                 <div className="aspect-square overflow-hidden">
                   <img
                     src={photo.url}
@@ -171,14 +171,14 @@ const Index = () => {
                   <h4 className="font-bold text-gray-800 mb-2 truncate">{photo.name}</h4>
                   <p className="text-sm text-gray-600 mb-2">📅 {photo.uploadDate}</p>
                   {photo.description && (
-                    <p className="text-sm text-gray-700 mb-3 bg-green-50 p-2 rounded border-2 border-green-200">
+                    <p className="text-sm text-gray-700 mb-3 bg-purple-50 p-2 rounded border-2 border-purple-200">
                       🌿 {photo.description}
                     </p>
                   )}
                   <Dialog>
                     <DialogTrigger asChild>
                       <Button
-                        className="w-full bg-teal-400 hover:bg-teal-500 text-white rounded-full"
+                        className="w-full bg-violet-400 hover:bg-violet-500 text-white rounded-full"
                         onClick={() => {
                           setSelectedPhoto(photo);
                           setNewDescription(photo.description);
@@ -187,9 +187,9 @@ const Index = () => {
                         {photo.description ? 'Edit Story 📝' : 'Add Story 🌿'}
                       </Button>
                     </DialogTrigger>
-                    <DialogContent className="bg-white border-4 border-green-200">
+                    <DialogContent className="bg-white border-4 border-purple-200">
                       <DialogHeader>
-                        <DialogTitle className="text-green-600 text-xl">
+                        <DialogTitle className="text-purple-600 text-xl">
                           Tell the story of this memory! 🐨
                         </DialogTitle>
                       </DialogHeader>
@@ -202,17 +202,17 @@ const Index = () => {
                           />
                         </div>
                         <Textarea
-                          placeholder="What makes this photo special? 🐨💚"
+                          placeholder="What makes this photo special? 🐨💜"
                           value={newDescription}
                           onChange={(e) => setNewDescription(e.target.value)}
-                          className="border-2 border-teal-200 focus:border-green-400"
+                          className="border-2 border-violet-200 focus:border-purple-400"
                           rows={4}
                         />
                         <Button
                           onClick={updateDescription}
-                          className="w-full bg-green-500 hover:bg-green-600 text-white rounded-full py-3"
+                          className="w-full bg-purple-500 hover:bg-purple-600 text-white rounded-full py-3"
                         >
-                          Save Story 🐨💚
+                          Save Story 🐨💜
                         </Button>
                       </div>
                     </DialogContent>
