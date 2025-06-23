@@ -103,7 +103,7 @@
   }
 }
 
-/* Custom pixel art and cute animal theme styles */
+/* Custom pixel art and cute koala theme styles */
 @layer utilities {
   .pixel-art {
     image-rendering: pixelated;
@@ -112,7 +112,7 @@
   }
   
   .cute-shadow {
-    box-shadow: 0 8px 25px -5px rgba(236, 72, 153, 0.3), 0 4px 6px -2px rgba(167, 139, 250, 0.2);
+    box-shadow: 0 8px 25px -5px rgba(34, 197, 94, 0.3), 0 4px 6px -2px rgba(20, 184, 166, 0.2);
   }
   
   .bounce-cute {
@@ -146,22 +146,22 @@
   }
 }
 
-/* Cute scrollbar */
+/* Cute scrollbar with koala theme */
 ::-webkit-scrollbar {
   width: 12px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #fdf2f8;
+  background: #f0fdf4;
   border-radius: 10px;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: linear-gradient(45deg, #ec4899, #a855f7);
+  background: linear-gradient(45deg, #22c55e, #14b8a6);
   border-radius: 10px;
-  border: 2px solid #fdf2f8;
+  border: 2px solid #f0fdf4;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(45deg, #db2777, #9333ea);
+  background: linear-gradient(45deg, #16a34a, #0d9488);
 }
