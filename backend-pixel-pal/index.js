@@ -1,100 +1,122 @@
-const express = require('express');
-const multer = require('multer');
-const sqlite3 = require('sqlite3').verbose();
-const cors = require('cors');
-const path = require('path');
-const fs = require('fs');
+import express from 'express';
+import multer from 'multer';
+import cors from 'cors';
+import sqlite3 from 'sqlite3';
+import { open } from 'sqlite';
+import path from 'path';
+import fs from 'fs';
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 const app = express();
-const port = 4000;
+const PORT = 4000;
 
 app.use(cors());
 app.use(express.json());
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-// Pasta de upload
-const uploadFolder = path.join(__dirname, 'uploads');
-if (!fs.existsSync(uploadFolder)) fs.mkdirSync(uploadFolder);
+const UPLOAD_FOLDER = path.join(__dirname, 'uploads');
+if (!fs.existsSync(UPLOAD_FOLDER)) fs.mkdirSync(UPLOAD_FOLDER);
 
-// Configuração do multer para upload
 const storage = multer.diskStorage({
-  destination: uploadFolder,
+  destination: UPLOAD_FOLDER,
   filename: (req, file, cb) => {
-    cb(null, Date.now() + '-' + file.originalname);
+    cb(null, `${Date.now()}-${file.originalname}`);
   }
 });
 const upload = multer({ storage });
 
-// Banco SQLite
-const db = new sqlite3.Database('./photos.db');
+let db;
 
-db.run(`
-  CREATE TABLE IF NOT EXISTS photos (
+(async () => {
+  db = await open({
+    filename: './photos.db',
+    driver: sqlite3.Database
+  });
+
+  await db.run(`CREATE TABLE IF NOT EXISTS photos (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    name TEXT,
+    file_path TEXT,
     description TEXT,
-    upload_date TEXT,
-    file_path TEXT
-  )
-`);
+    name TEXT,
+    taken_date TEXT,
+    upload_date TEXT
+  )`);
 
-// Upload de foto
-app.post('/photos', upload.single('image'), (req, res) => {
-  const { description } = req.body;
-  const { filename } = req.file;
-  const name = req.file.originalname;
+  await db.run(`CREATE TABLE IF NOT EXISTS comments (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    photo_id INTEGER,
+    content TEXT,
+    created_at TEXT,
+    FOREIGN KEY (photo_id) REFERENCES photos(id)
+  )`);
+})();
+
+app.get('/photos', async (req, res) => {
+  const photos = await db.all('SELECT * FROM photos ORDER BY id DESC');
+  res.json(photos);
+});
+
+app.post('/photos', upload.single('image'), async (req, res) => {
+  const { name, date, description } = req.body;
+  const file_path = req.file.filename;
   const upload_date = new Date().toISOString();
 
-  db.run(
-    `INSERT INTO photos (name, description, upload_date, file_path) VALUES (?, ?, ?, ?)`,
-    [name, description, upload_date, filename],
-    function (err) {
-      if (err) {
-        return res.status(500).json({ error: err.message });
-      }
-      res.json({
-        id: this.lastID,
-        name,
-        description,
-        upload_date,
-        file_path: filename
-      });
-    }
+  await db.run(
+    'INSERT INTO photos (file_path, name, taken_date, description, upload_date) VALUES (?, ?, ?, ?, ?)',
+    file_path, name, date, description, upload_date
   );
+
+  res.sendStatus(200);
 });
 
-// Listagem de fotos
-app.get('/photos', (req, res) => {
-  db.all(`SELECT * FROM photos ORDER BY upload_date DESC`, [], (err, rows) => {
-    if (err) {
-      return res.status(500).json({ error: err.message });
-    }
-    res.json(rows);
-  });
+app.delete('/photos/:id', async (req, res) => {
+  const id = req.params.id;
+  const photo = await db.get('SELECT * FROM photos WHERE id = ?', id);
+
+  if (!photo) return res.sendStatus(404);
+
+  await db.run('DELETE FROM photos WHERE id = ?', id);
+  await db.run('DELETE FROM comments WHERE photo_id = ?', id);
+
+  fs.unlink(path.join(UPLOAD_FOLDER, photo.file_path), () => {});
+  res.sendStatus(200);
 });
 
-// Atualizar descrição
-app.put('/photos/:id', (req, res) => {
-  const { id } = req.params;
-  const { description } = req.body;
-
-  db.run(
-    `UPDATE photos SET description = ? WHERE id = ?`,
-    [description, id],
-    function (err) {
-      if (err) {
-        return res.status(500).json({ error: err.message });
-      }
-      if (this.changes === 0) {
-        return res.status(404).json({ error: 'Photo not found' });
-      }
-      res.json({ success: true });
-    }
+app.get('/photos/:photoId/comments', async (req, res) => {
+  const { photoId } = req.params;
+  const comments = await db.all(
+    'SELECT * FROM comments WHERE photo_id = ? ORDER BY created_at DESC',
+    photoId
   );
+  res.json(comments);
 });
 
-// Servir as imagens
-app.use('/uploads', express.static(uploadFolder));
+app.post('/photos/:photoId/comments', async (req, res) => {
+  const { photoId } = req.params;
+  const { content } = req.body;
+  const created_at = new Date().toISOString();
 
-app.listen(port, () => {
-  console.log(`Backend rodando em http://localhost:${port}`);
+  await db.run(
+    'INSERT INTO comments (photo_id, content, created_at) VALUES (?, ?, ?)',
+    photoId, content, created_at
+  );
+  res.sendStatus(200);
+});
+
+app.delete('/photos/:photoId/comments/:commentId', async (req, res) => {
+  const { commentId, photoId } = req.params;
+
+  const comment = await db.get('SELECT * FROM comments WHERE id = ? AND photo_id = ?', commentId, photoId);
+  if (!comment) return res.sendStatus(404);
+
+  await db.run('DELETE FROM comments WHERE id = ?', commentId);
+  res.sendStatus(200);
+});
+
+app.listen(PORT, () => {
+  console.log(`Server is running on http://localhost:${PORT}`);
 });

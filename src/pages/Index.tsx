@@ -1,106 +1,179 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
-import { Heart, Image as ImageIcon } from 'lucide-react';
+import { Heart, Image as ImageIcon, Trash2, UploadCloud } from 'lucide-react';
 
 interface Photo {
   id: number;
   file_path: string;
   description: string;
   name: string;
+  taken_date: string;
   upload_date: string;
+}
+
+interface Comment {
+  id: number;
+  photo_id: number;
+  content: string;
+  created_at: string;
+}
+
+interface UploadingFile {
+  file: File;
+  preview: string;
+  progress: number;
+  customName: string;
+  customDate: string;
+  customDescription: string;
+  isUploading: boolean;
 }
 
 const API_URL = 'http://192.168.0.6:4000';
 
 const Index = () => {
   const [photos, setPhotos] = useState<Photo[]>([]);
-  const [selectedPhoto, setSelectedPhoto] = useState<Photo | null>(null);
-  const [newDescription, setNewDescription] = useState('');
-  const [dragActive, setDragActive] = useState(false);
+  const [selectedImage, setSelectedImage] = useState<Photo | null>(null);
+  const [comments, setComments] = useState<Comment[]>([]);
+  const [newComment, setNewComment] = useState('');
+  const [uploadingFiles, setUploadingFiles] = useState<UploadingFile[]>([]);
   const { toast } = useToast();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const fetchPhotos = async () => {
+    try {
+      const res = await fetch(`${API_URL}/photos`);
+      const data = await res.json();
+      setPhotos(data);
+    } catch (err) {
+      toast({ title: 'Error loading photos', description: (err as Error).message });
+    }
+  };
 
   useEffect(() => {
-    async function loadPhotos() {
-      try {
-        const res = await fetch(`${API_URL}/photos`);
-        const data = await res.json();
-        setPhotos(data);
-      } catch (err) {
-        toast({ title: 'Error loading photos', description: (err as Error).message });
-      }
-    }
-    loadPhotos();
+    fetchPhotos();
   }, []);
 
-  const handleDrag = (e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (e.type === "dragenter" || e.type === "dragover") {
-      setDragActive(true);
-    } else if (e.type === "dragleave") {
-      setDragActive(false);
+  const fetchComments = async (photoId: number) => {
+    try {
+      const res = await fetch(`${API_URL}/photos/${photoId}/comments`);
+      const data = await res.json();
+      setComments(data);
+    } catch (err) {
+      toast({ title: 'Error loading comments', description: (err as Error).message });
     }
   };
 
-  const handleDrop = (e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setDragActive(false);
-
-    const files = Array.from(e.dataTransfer.files);
-    handleFiles(files);
+  const addComment = async () => {
+    if (!selectedImage || !newComment.trim()) return;
+    try {
+      await fetch(`${API_URL}/photos/${selectedImage.id}/comments`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ content: newComment }),
+      });
+      setNewComment('');
+      fetchComments(selectedImage.id);
+      toast({ title: 'Comment added! 💬' });
+    } catch (err) {
+      toast({ title: 'Error adding comment', description: (err as Error).message });
+    }
   };
 
-  const handleFiles = (files: File[]) => {
-    files.forEach(async (file) => {
-      if (file.type.startsWith('image/')) {
-        const formData = new FormData();
-        formData.append('image', file);
-        formData.append('description', '');
-
-        try {
-          const res = await fetch(`${API_URL}/photos`, {
-            method: 'POST',
-            body: formData,
-          });
-
-          const newPhoto = await res.json();
-          setPhotos(prev => [newPhoto, ...prev]);
-          toast({ title: 'Photo uploaded! 🐨', description: 'Your precious memory has been saved!' });
-        } catch (err) {
-          toast({ title: 'Upload failed!', description: (err as Error).message });
-        }
-      }
-    });
+  const deleteComment = async (commentId: number) => {
+    if (!selectedImage) return;
+    if (!confirm("Are you sure you want to delete this comment?")) return;
+    try {
+      await fetch(`${API_URL}/photos/${selectedImage.id}/comments/${commentId}`, {
+        method: 'DELETE'
+      });
+      fetchComments(selectedImage.id);
+      toast({ title: 'Comment deleted!' });
+    } catch (err) {
+      toast({ title: 'Error deleting comment', description: (err as Error).message });
+    }
   };
 
   const handleFileInput = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
-      handleFiles(Array.from(e.target.files));
+      const files = Array.from(e.target.files);
+      prepareFilesForUpload(files);
     }
   };
 
-  const updateDescription = async () => {
-    if (selectedPhoto) {
+  const prepareFilesForUpload = (files: File[]) => {
+    const uploading = files.map(file => ({
+      file,
+      preview: URL.createObjectURL(file),
+      progress: 0,
+      customName: '',
+      customDate: '',
+      customDescription: '',
+      isUploading: false
+    }));
+    setUploadingFiles(prev => [...prev, ...uploading]);
+  };
+
+  const startUpload = async (uploadingFile: UploadingFile) => {
+    if (!uploadingFile.customName || !uploadingFile.customDate) {
+      toast({ title: 'Please fill in name, date and description before uploading!' });
+      return;
+    }
+
+    setUploadingFiles(prev => prev.map(f =>
+      f.file === uploadingFile.file ? { ...f, isUploading: true } : f
+    ));
+
+    const formData = new FormData();
+    formData.append('image', uploadingFile.file);
+    formData.append('description', uploadingFile.customDescription);
+    formData.append('name', uploadingFile.customName);
+    formData.append('date', uploadingFile.customDate);
+
+    try {
+      const xhr = new XMLHttpRequest();
+      xhr.open("POST", `${API_URL}/photos`);
+
+      xhr.upload.addEventListener("progress", (e) => {
+        if (e.lengthComputable) {
+          const percent = Math.round((e.loaded / e.total) * 100);
+          setUploadingFiles(prev => prev.map(f =>
+            f.file === uploadingFile.file ? { ...f, progress: percent } : f
+          ));
+        }
+      });
+
+      xhr.onload = () => {
+        if (xhr.status === 200) {
+          fetchPhotos();
+          setUploadingFiles(prev => prev.filter(f => f.file !== uploadingFile.file));
+          toast({ title: 'Upload complete! 🐨' });
+        } else {
+          throw new Error("Upload failed");
+        }
+      };
+
+      xhr.onerror = () => {
+        toast({ title: 'Upload failed!', description: 'Network error.' });
+      };
+
+      xhr.send(formData);
+    } catch (err) {
+      toast({ title: 'Upload failed!', description: (err as Error).message });
+    }
+  };
+
+  const deletePhoto = async (id: number) => {
+    if (confirm("Tem certeza que deseja deletar esta foto?")) {
       try {
-        await fetch(`${API_URL}/photos/${selectedPhoto.id}`, {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ description: newDescription }),
-        });
-        setPhotos(prev => prev.map(photo => photo.id === selectedPhoto.id ? { ...photo, description: newDescription } : photo));
-        setSelectedPhoto(null);
-        setNewDescription('');
-        toast({ title: 'Description saved! 🌿', description: 'Your memory now has a story!' });
+        await fetch(`${API_URL}/photos/${id}`, { method: 'DELETE' });
+        await fetchPhotos();
+        toast({ title: 'Foto deletada com sucesso 🗑️' });
       } catch (err) {
-        toast({ title: 'Error updating description', description: (err as Error).message });
+        toast({ title: 'Erro ao deletar', description: (err as Error).message });
       }
     }
   };
@@ -108,17 +181,7 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-100 via-pink-50 to-violet-100 p-4">
       <div className="max-w-6xl mx-auto mb-8">
-        <div className="bg-white rounded-lg shadow-lg border-4 border-purple-200 p-6 relative overflow-hidden">
-          <div className="absolute top-2 right-2">
-            <div className="relative">
-              <div className="w-10 h-12 bg-gray-400 rounded-sm pixel-art"></div>
-              <div className="absolute -top-2 left-1 w-3 h-3 bg-gray-400 rounded-full pixel-art"></div>
-              <div className="absolute -top-2 right-1 w-3 h-3 bg-gray-400 rounded-full pixel-art"></div>
-              <div className="absolute top-2 left-1/2 transform -translate-x-1/2 w-1 h-1 bg-black rounded-sm"></div>
-              <div className="absolute top-1 left-2 w-1 h-1 bg-black rounded-sm"></div>
-              <div className="absolute top-1 right-2 w-1 h-1 bg-black rounded-sm"></div>
-            </div>
-          </div>
+        <div className="bg-white rounded-lg shadow-lg border-4 border-purple-200 p-6">
           <div className="flex items-center gap-3 mb-4">
             <Heart className="text-purple-500 w-8 h-8" />
             <h1 className="text-4xl font-bold text-purple-600 font-mono">
@@ -131,41 +194,61 @@ const Index = () => {
         </div>
       </div>
 
-      <div className="max-w-6xl mx-auto">
-        <Card className={`mb-8 border-4 transition-all duration-300 ${
-          dragActive ? 'border-purple-400 bg-purple-50' : 'border-violet-200 bg-white'
-        }`}>
-          <div
-            className="p-12 text-center cursor-pointer"
-            onDragEnter={handleDrag}
-            onDragLeave={handleDrag}
-            onDragOver={handleDrag}
-            onDrop={handleDrop}
-          >
-            <ImageIcon className="mx-auto w-16 h-16 text-violet-400 mb-4" />
-            <h3 className="text-2xl font-bold text-violet-600 mb-2">
-              Drop your photos here! 📸
-            </h3>
-            <p className="text-gray-600 mb-6">
-              Drag and drop your cute photos or click to browse
-            </p>
-            <input
-              type="file"
-              multiple
-              accept="image/*"
-              onChange={handleFileInput}
-              className="hidden"
-              id="photo-upload"
-            />
-            <label htmlFor="photo-upload">
-              <Button className="bg-purple-500 hover:bg-purple-600 text-white px-8 py-3 rounded-full cursor-pointer">
-                Choose Photos 🌿
-              </Button>
-            </label>
-          </div>
-        </Card>
+      <div className="max-w-6xl mx-auto mb-10">
+        <div className="border-4 border-dashed border-purple-300 rounded-lg p-8 bg-white shadow-lg text-center">
+          <input
+            type="file"
+            multiple
+            className="hidden"
+            ref={fileInputRef}
+            onChange={handleFileInput}
+          />
+          <Button className="bg-purple-500 text-white mb-4" onClick={() => fileInputRef.current?.click()}>
+            <UploadCloud className="w-5 h-5 mr-2" /> Upload Photos
+          </Button>
 
-        {photos.length > 0 && (
+          {uploadingFiles.length > 0 && (
+            <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+              {uploadingFiles.map(file => (
+                <div key={file.preview} className="border p-4 rounded bg-purple-50">
+                  <img src={file.preview} alt="preview" className="w-full mb-2 rounded" />
+                  <input
+                    type="text"
+                    placeholder="Photo Name"
+                    value={file.customName}
+                    onChange={(e) => setUploadingFiles(prev => prev.map(f =>
+                      f.file === file.file ? { ...f, customName: e.target.value } : f
+                    ))}
+                    className="w-full mb-2 border rounded p-2"
+                  />
+                  <input
+                    type="date"
+                    value={file.customDate}
+                    onChange={(e) => setUploadingFiles(prev => prev.map(f =>
+                      f.file === file.file ? { ...f, customDate: e.target.value } : f
+                    ))}
+                    className="w-full mb-2 border rounded p-2"
+                  />
+                  <Textarea
+                    placeholder="Description"
+                    value={file.customDescription}
+                    onChange={(e) => setUploadingFiles(prev => prev.map(f =>
+                      f.file === file.file ? { ...f, customDescription: e.target.value } : f
+                    ))}
+                    className="w-full mb-2"
+                  />
+                  <Button className="w-full" disabled={file.isUploading} onClick={() => startUpload(file)}>
+                    {file.isUploading ? `Uploading ${file.progress}%` : 'Start Upload'}
+                  </Button>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+
+      <div className="max-w-6xl mx-auto">
+        {photos.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {photos.map((photo) => (
               <Card key={photo.id} className="bg-white border-4 border-pink-200 overflow-hidden hover:border-purple-300 transition-all duration-300 hover:scale-105">
@@ -173,7 +256,11 @@ const Index = () => {
                   <img
                     src={`${API_URL}/uploads/${photo.file_path}`}
                     alt={photo.name}
-                    className="w-full h-full object-cover"
+                    className="w-full h-full object-cover cursor-pointer"
+                    onClick={() => {
+                      setSelectedImage(photo);
+                      fetchComments(photo.id);
+                    }}
                   />
                 </div>
                 <div className="p-4">
@@ -184,55 +271,17 @@ const Index = () => {
                       🌿 {photo.description}
                     </p>
                   )}
-                  <Dialog>
-                    <DialogTrigger asChild>
-                      <Button
-                        className="w-full bg-violet-400 hover:bg-violet-500 text-white rounded-full"
-                        onClick={() => {
-                          setSelectedPhoto(photo);
-                          setNewDescription(photo.description);
-                        }}
-                      >
-                        {photo.description ? 'Edit Story 📝' : 'Add Story 🌿'}
-                      </Button>
-                    </DialogTrigger>
-                    <DialogContent className="bg-white border-4 border-purple-200">
-                      <DialogHeader>
-                        <DialogTitle className="text-purple-600 text-xl">
-                          Tell the story of this memory! 🐨
-                        </DialogTitle>
-                      </DialogHeader>
-                      <div className="space-y-4">
-                        <div className="aspect-video overflow-hidden rounded-lg border-2 border-gray-200">
-                          <img
-                            src={`${API_URL}/uploads/${photo.file_path}`}
-                            alt={photo.name}
-                            className="w-full h-full object-cover"
-                          />
-                        </div>
-                        <Textarea
-                          placeholder="What makes this photo special? 🐨💜"
-                          value={newDescription}
-                          onChange={(e) => setNewDescription(e.target.value)}
-                          className="border-2 border-violet-200 focus:border-purple-400"
-                          rows={4}
-                        />
-                        <Button
-                          onClick={updateDescription}
-                          className="w-full bg-purple-500 hover:bg-purple-600 text-white rounded-full py-3"
-                        >
-                          Save Story 🐨💜
-                        </Button>
-                      </div>
-                    </DialogContent>
-                  </Dialog>
+                  <Button
+                    onClick={() => deletePhoto(photo.id)}
+                    className="w-full bg-red-500 hover:bg-red-600 text-white rounded-full mt-2"
+                  >
+                    Delete 🗑️
+                  </Button>
                 </div>
               </Card>
             ))}
           </div>
-        )}
-
-        {photos.length === 0 && (
+        ) : (
           <div className="text-center py-16">
             <div className="text-6xl mb-4">🐨</div>
             <h3 className="text-2xl font-bold text-gray-600 mb-2">
@@ -243,6 +292,49 @@ const Index = () => {
             </p>
           </div>
         )}
+
+        <Dialog open={selectedImage !== null} onOpenChange={() => setSelectedImage(null)}>
+          <DialogContent className="bg-purple-50 border-4 border-purple-300 max-w-4xl">
+            {selectedImage && (
+              <div className="relative">
+                <img
+                  src={`${API_URL}/uploads/${selectedImage.file_path}`}
+                  alt={selectedImage.name}
+                  className="w-full rounded-lg mb-4"
+                />
+                <img
+                  src="/koala-animated.gif"
+                  alt="Koala"
+                  className="absolute bottom-4 right-4 w-24 h-24"
+                />
+                <h3 className="text-xl font-bold mb-4">Description 🌿</h3>
+                <p className="bg-white border rounded p-2 mb-6">{selectedImage.description || 'No description'}</p>
+
+                <div>
+                  <h3 className="text-xl font-bold mb-2">Comments 💬</h3>
+                  <div className="max-h-48 overflow-y-auto mb-4 border rounded p-2 bg-white">
+                    {comments.map(comment => (
+                      <div key={comment.id} className="p-2 border-b last:border-b-0 flex justify-between items-center">
+                        <p>{comment.content}</p>
+                        <Trash2 className="text-red-400 cursor-pointer" onClick={() => deleteComment(comment.id)} />
+                      </div>
+                    ))}
+                    {comments.length === 0 && <p className="text-gray-400">No comments yet.</p>}
+                  </div>
+                  <Textarea
+                    placeholder="Write a comment..."
+                    value={newComment}
+                    onChange={(e) => setNewComment(e.target.value)}
+                    className="mb-2"
+                  />
+                  <Button className="bg-purple-500 text-white w-full" onClick={addComment}>
+                    Add Comment
+                  </Button>
+                </div>
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   );
