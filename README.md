@@ -1,73 +1,138 @@
-# Welcome to your Lovable project
+# Pup Pixel Photo Pal - Fullstack Koala Edition 🐨
 
-## Project info
+Projeto completo com frontend em React (Vite) e backend Node.js + SQLite para armazenar fotos pixeladas de forma fofinha 💜
 
-**URL**: https://lovable.dev/projects/fee5e3f6-40a8-43db-8539-3e85587527e2
+---
 
-## How can I edit this code?
+## 🔧 Pré-requisitos
 
-There are several ways of editing your application.
+- Node.js (para o backend)
+- Bun (ou npm/yarn para o frontend)
+- Ambos o backend e o frontend devem rodar na mesma rede local para funcionar em múltiplos dispositivos
 
-**Use Lovable**
+---
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/fee5e3f6-40a8-43db-8539-3e85587527e2) and start prompting.
+## 🖥 Rodando o Backend
 
-Changes made via Lovable will be committed automatically to this repo.
+1️⃣ Acesse a pasta do backend:
 
-**Use your preferred IDE**
-
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
-
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-Follow these steps:
-
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
+```bash
+cd backend-pixel-pal
 ```
 
-**Edit a file directly in GitHub**
+2️⃣ Instale as dependências:
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+```bash
+npm install
+```
 
-**Use GitHub Codespaces**
+3️⃣ Inicie o servidor:
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+```bash
+node index.js
+```
 
-## What technologies are used for this project?
+O backend irá rodar em:
 
-This project is built with:
+```
+http://localhost:4000
+```
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+✅ Lembre-se: deixe o backend rodando durante o uso do app.
 
-## How can I deploy this project?
+---
 
-Simply open [Lovable](https://lovable.dev/projects/fee5e3f6-40a8-43db-8539-3e85587527e2) and click on Share -> Publish.
+## 🌐 Rodando o Frontend (modo produção local)
 
-## Can I connect a custom domain to my Lovable project?
+1️⃣ Acesse a pasta do frontend:
 
-Yes, you can!
+```bash
+cd pup-pixel-photo-pal
+```
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+2️⃣ Instale as dependências:
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+Se você está usando **Bun**:
+
+```bash
+bun install
+```
+
+Se está usando **npm**:
+
+```bash
+npm install
+```
+
+3️⃣ Ajuste o IP do Backend:
+
+No arquivo `Index.tsx` altere o `API_URL` com o IP da máquina que está rodando o backend:
+
+```typescript
+const API_URL = 'http://SEU-IP-AQUI:4000';
+```
+
+Exemplo com seu IP:
+
+```typescript
+const API_URL = 'http://192.168.0.6:4000';
+```
+
+Assim outros dispositivos na rede conseguem acessar corretamente.
+
+4️⃣ Gere o build de produção:
+
+Se for Bun:
+
+```bash
+bun run build
+```
+
+Se for npm:
+
+```bash
+npm run build
+```
+
+5️⃣ Rode o servidor de preview de produção:
+
+Se for Bun:
+
+```bash
+bun run preview
+```
+
+Se for npm:
+
+```bash
+npm run preview
+```
+
+O frontend ficará disponível em:
+
+```
+http://localhost:4173
+```
+
+✅ Agora você pode acessar via celular apontando para:
+
+```
+http://192.168.0.6:4173
+```
+
+(ajustando com o IP correto da máquina)
+
+---
+
+## 🚀 Próximos Passos Possíveis
+
+- 🔄 Persistência total de descrições (já implementado)
+- 🌎 Preparar deploy completo em servidor online
+- 🧹 Adicionar delete de fotos
+- 🔐 Autenticação por usuário
+- 🐳 Docker fullstack para rodar tudo em uma caixa só
+- 📦 Deploy definitivo com CI/CD
+
+---
+
+> Feito com muito 💜 e um koala programador 🐨
