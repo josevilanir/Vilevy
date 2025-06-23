@@ -1,5 +1,4 @@
-
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -9,12 +8,14 @@ import { useToast } from '@/hooks/use-toast';
 import { Heart, Image as ImageIcon } from 'lucide-react';
 
 interface Photo {
-  id: string;
-  url: string;
+  id: number;
+  file_path: string;
   description: string;
   name: string;
-  uploadDate: string;
+  upload_date: string;
 }
+
+const API_URL = 'http://192.168.0.6:4000';
 
 const Index = () => {
   const [photos, setPhotos] = useState<Photo[]>([]);
@@ -22,6 +23,19 @@ const Index = () => {
   const [newDescription, setNewDescription] = useState('');
   const [dragActive, setDragActive] = useState(false);
   const { toast } = useToast();
+
+  useEffect(() => {
+    async function loadPhotos() {
+      try {
+        const res = await fetch(`${API_URL}/photos`);
+        const data = await res.json();
+        setPhotos(data);
+      } catch (err) {
+        toast({ title: 'Error loading photos', description: (err as Error).message });
+      }
+    }
+    loadPhotos();
+  }, []);
 
   const handleDrag = (e: React.DragEvent) => {
     e.preventDefault();
@@ -43,24 +57,24 @@ const Index = () => {
   };
 
   const handleFiles = (files: File[]) => {
-    files.forEach(file => {
+    files.forEach(async (file) => {
       if (file.type.startsWith('image/')) {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          const newPhoto: Photo = {
-            id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
-            url: e.target?.result as string,
-            description: '',
-            name: file.name,
-            uploadDate: new Date().toLocaleDateString()
-          };
-          setPhotos(prev => [...prev, newPhoto]);
-          toast({
-            title: "Photo uploaded! 🐨",
-            description: "Your precious memory has been saved!"
+        const formData = new FormData();
+        formData.append('image', file);
+        formData.append('description', '');
+
+        try {
+          const res = await fetch(`${API_URL}/photos`, {
+            method: 'POST',
+            body: formData,
           });
-        };
-        reader.readAsDataURL(file);
+
+          const newPhoto = await res.json();
+          setPhotos(prev => [newPhoto, ...prev]);
+          toast({ title: 'Photo uploaded! 🐨', description: 'Your precious memory has been saved!' });
+        } catch (err) {
+          toast({ title: 'Upload failed!', description: (err as Error).message });
+        }
       }
     });
   };
@@ -71,43 +85,40 @@ const Index = () => {
     }
   };
 
-  const updateDescription = () => {
+  const updateDescription = async () => {
     if (selectedPhoto) {
-      setPhotos(prev => prev.map(photo => 
-        photo.id === selectedPhoto.id 
-          ? { ...photo, description: newDescription }
-          : photo
-      ));
-      setSelectedPhoto(null);
-      setNewDescription('');
-      toast({
-        title: "Description saved! 🌿",
-        description: "Your memory now has a story!"
-      });
+      try {
+        await fetch(`${API_URL}/photos/${selectedPhoto.id}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ description: newDescription }),
+        });
+        setPhotos(prev => prev.map(photo => photo.id === selectedPhoto.id ? { ...photo, description: newDescription } : photo));
+        setSelectedPhoto(null);
+        setNewDescription('');
+        toast({ title: 'Description saved! 🌿', description: 'Your memory now has a story!' });
+      } catch (err) {
+        toast({ title: 'Error updating description', description: (err as Error).message });
+      }
     }
   };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-100 via-pink-50 to-violet-100 p-4">
-      {/* Cute header with pixel art koala */}
       <div className="max-w-6xl mx-auto mb-8">
         <div className="bg-white rounded-lg shadow-lg border-4 border-purple-200 p-6 relative overflow-hidden">
-          {/* Pixel art koala decoration */}
           <div className="absolute top-2 right-2">
             <div className="relative">
-              {/* Koala body */}
               <div className="w-10 h-12 bg-gray-400 rounded-sm pixel-art"></div>
-              {/* Koala ears */}
               <div className="absolute -top-2 left-1 w-3 h-3 bg-gray-400 rounded-full pixel-art"></div>
               <div className="absolute -top-2 right-1 w-3 h-3 bg-gray-400 rounded-full pixel-art"></div>
-              {/* Koala nose */}
               <div className="absolute top-2 left-1/2 transform -translate-x-1/2 w-1 h-1 bg-black rounded-sm"></div>
-              {/* Koala eyes */}
               <div className="absolute top-1 left-2 w-1 h-1 bg-black rounded-sm"></div>
               <div className="absolute top-1 right-2 w-1 h-1 bg-black rounded-sm"></div>
             </div>
           </div>
-          
           <div className="flex items-center gap-3 mb-4">
             <Heart className="text-purple-500 w-8 h-8" />
             <h1 className="text-4xl font-bold text-purple-600 font-mono">
@@ -121,7 +132,6 @@ const Index = () => {
       </div>
 
       <div className="max-w-6xl mx-auto">
-        {/* Upload area */}
         <Card className={`mb-8 border-4 transition-all duration-300 ${
           dragActive ? 'border-purple-400 bg-purple-50' : 'border-violet-200 bg-white'
         }`}>
@@ -155,21 +165,20 @@ const Index = () => {
           </div>
         </Card>
 
-        {/* Photo gallery */}
         {photos.length > 0 && (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {photos.map((photo) => (
               <Card key={photo.id} className="bg-white border-4 border-pink-200 overflow-hidden hover:border-purple-300 transition-all duration-300 hover:scale-105">
                 <div className="aspect-square overflow-hidden">
                   <img
-                    src={photo.url}
+                    src={`${API_URL}/uploads/${photo.file_path}`}
                     alt={photo.name}
                     className="w-full h-full object-cover"
                   />
                 </div>
                 <div className="p-4">
                   <h4 className="font-bold text-gray-800 mb-2 truncate">{photo.name}</h4>
-                  <p className="text-sm text-gray-600 mb-2">📅 {photo.uploadDate}</p>
+                  <p className="text-sm text-gray-600 mb-2">📅 {photo.upload_date}</p>
                   {photo.description && (
                     <p className="text-sm text-gray-700 mb-3 bg-purple-50 p-2 rounded border-2 border-purple-200">
                       🌿 {photo.description}
@@ -196,7 +205,7 @@ const Index = () => {
                       <div className="space-y-4">
                         <div className="aspect-video overflow-hidden rounded-lg border-2 border-gray-200">
                           <img
-                            src={photo.url}
+                            src={`${API_URL}/uploads/${photo.file_path}`}
                             alt={photo.name}
                             className="w-full h-full object-cover"
                           />
