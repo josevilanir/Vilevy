@@ -1,9 +1,10 @@
 {
-  "files": [],
+  "files": ["vite-env.d.ts"],
   "references": [
     { "path": "./tsconfig.app.json" },
     { "path": "./tsconfig.node.json" }
   ],
+  "include": ["vite-env.d.ts"],
   "compilerOptions": {
     "baseUrl": ".",
     "paths": {

@@ -1,4 +1,4 @@
-version: "3.8"
+version: '3.9'
 
 services:
   backend:
@@ -10,13 +10,18 @@ services:
     restart: always
 
   frontend:
-    build:
-      context: .
-      args:
-        # aqui estamos dizendo: no build, ENABLE_PWA será false
-        ENABLE_PWA: "false"
+    build: .
     ports:
       - "4173:80"
+    environment:
+      - VITE_API_URL=http://backend:4000
     depends_on:
       - backend
     restart: always
+
+# Se preferir usar arquivo .env, descomente abaixo e comente a seção environment:
+#
+# env_file:
+#   - .env
+#
+# onde .env define: VITE_API_URL=http://backend:4000

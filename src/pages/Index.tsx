@@ -33,7 +33,7 @@ interface UploadingFile {
   isUploading: boolean;
 }
 
-const API_URL = 'http://192.168.0.6:4000';
+const API_URL = `http://${window.location.hostname}:4000`;
 
 const Index = () => {
   const [photos, setPhotos] = useState<Photo[]>([]);
