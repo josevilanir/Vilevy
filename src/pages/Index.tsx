@@ -179,23 +179,23 @@ const Index = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-100 via-pink-50 to-violet-100 p-4">
-      <div className="max-w-6xl mx-auto mb-8">
-        <div className="bg-white rounded-lg shadow-lg border-4 border-purple-200 p-6">
-          <div className="flex items-center gap-3 mb-4">
-            <Heart className="text-purple-500 w-8 h-8" />
-            <h1 className="text-4xl font-bold text-purple-600 font-mono">
+      <div className="min-h-screen bg-gradient-to-br from-purple-100 via-pink-50 to-violet-100 p-4 overflow-auto">
+      <div className="max-w-6xl mx-auto mb-6 sm:mb-8">
+        <div className="bg-white rounded-lg shadow-lg border-4 border-purple-200 p-4 sm:p-6">
+          <div className="flex items-center gap-2 sm:gap-3 mb-4">
+            <Heart className="text-purple-500 w-6 h-6 sm:w-8 sm:h-8" />
+            <h1 className="text-2xl sm:text-4xl font-bold text-purple-600 font-mono">
               🐨💜 Our Koala Photo Album 💜🐨
             </h1>
           </div>
-          <p className="text-gray-600 text-lg">
+          <p className="text-gray-600 text-base sm:text-lg">
             A cute eucalyptus-scented place to store all your precious memories together! 🐨🌿
           </p>
         </div>
       </div>
 
-      <div className="max-w-6xl mx-auto mb-10">
-        <div className="border-4 border-dashed border-purple-300 rounded-lg p-8 bg-white shadow-lg text-center">
+      <div className="max-w-6xl mx-auto mb-8 sm:mb-10">
+        <div className="border-4 border-dashed border-purple-300 rounded-lg p-4 sm:p-8 bg-white shadow-lg text-center">
           <input
             type="file"
             multiple
@@ -211,7 +211,7 @@ const Index = () => {
             <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
               {uploadingFiles.map(file => (
                 <div key={file.preview} className="border p-4 rounded bg-purple-50">
-                  <img src={file.preview} alt="preview" className="w-full mb-2 rounded" />
+                  <img src={file.preview} alt="preview" className="w-full rounded-lg mb-4 max-h-[60vh] object-contain mx-auto" />
                   <input
                     type="text"
                     placeholder="Photo Name"
@@ -249,14 +249,14 @@ const Index = () => {
 
       <div className="max-w-6xl mx-auto">
         {photos.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
             {photos.map((photo) => (
-              <Card key={photo.id} className="bg-white border-4 border-pink-200 overflow-hidden hover:border-purple-300 transition-all duration-300 hover:scale-105">
+              <Card key={photo.id} className="bg-white border-4 border-pink-200 overflow-hidden hover:border-purple-300 transition-all duration-500 hover:scale-[1.02] hover:shadow-xl">
                 <div className="aspect-square overflow-hidden">
                   <img
                     src={`${API_URL}/uploads/${photo.file_path}`}
                     alt={photo.name}
-                    className="w-full h-full object-cover cursor-pointer"
+                    className="w-full h-full object-cover cursor-pointer transition-transform duration-500 hover:scale-105"
                     onClick={() => {
                       setSelectedImage(photo);
                       fetchComments(photo.id);
@@ -273,7 +273,7 @@ const Index = () => {
                   )}
                   <Button
                     onClick={() => deletePhoto(photo.id)}
-                    className="w-full bg-red-500 hover:bg-red-600 text-white rounded-full mt-2"
+                    className="w-full bg-red-500 hover:bg-red-600 text-white rounded-full mt-2 transition-colors duration-300"
                   >
                     Delete 🗑️
                   </Button>
@@ -283,8 +283,8 @@ const Index = () => {
           </div>
         ) : (
           <div className="text-center py-16">
-            <div className="text-6xl mb-4">🐨</div>
-            <h3 className="text-2xl font-bold text-gray-600 mb-2">
+            <div className="text-4xl sm:text-6xl mb-4">🐨</div>
+            <h3 className="text-xl sm:text-2xl font-bold text-gray-600 mb-2">
               No photos yet!
             </h3>
             <p className="text-gray-500">
@@ -294,42 +294,66 @@ const Index = () => {
         )}
 
         <Dialog open={selectedImage !== null} onOpenChange={() => setSelectedImage(null)}>
-          <DialogContent className="bg-purple-50 border-4 border-purple-300 max-w-4xl">
+          <DialogContent   
+            className="
+              bg-purple-50 border-4 border-purple-300
+              w-full h-full
+              sm:w-auto sm:h-auto
+              max-w-full sm:max-w-[95vw]
+              max-h-full sm:max-h-[95vh]
+              overflow-auto p-4
+            "
+          >
             {selectedImage && (
               <div className="relative">
-                <img
-                  src={`${API_URL}/uploads/${selectedImage.file_path}`}
-                  alt={selectedImage.name}
-                  className="w-full rounded-lg mb-4"
-                />
-                <img
-                  src="/koala-animated.gif"
-                  alt="Koala"
-                  className="absolute bottom-4 right-4 w-24 h-24"
-                />
-                <h3 className="text-xl font-bold mb-4">Description 🌿</h3>
-                <p className="bg-white border rounded p-2 mb-6">{selectedImage.description || 'No description'}</p>
-
-                <div>
-                  <h3 className="text-xl font-bold mb-2">Comments 💬</h3>
-                  <div className="max-h-48 overflow-y-auto mb-4 border rounded p-2 bg-white">
-                    {comments.map(comment => (
-                      <div key={comment.id} className="p-2 border-b last:border-b-0 flex justify-between items-center">
-                        <p>{comment.content}</p>
-                        <Trash2 className="text-red-400 cursor-pointer" onClick={() => deleteComment(comment.id)} />
-                      </div>
-                    ))}
-                    {comments.length === 0 && <p className="text-gray-400">No comments yet.</p>}
-                  </div>
-                  <Textarea
-                    placeholder="Write a comment..."
-                    value={newComment}
-                    onChange={(e) => setNewComment(e.target.value)}
-                    className="mb-2"
+                <div className="max-w-4xl mx-auto">
+                  <img
+                    src={`${API_URL}/uploads/${selectedImage.file_path}`}
+                    alt={selectedImage.name}
+                    className="w-full max-h-[60vh] object-contain rounded-lg mb-4"
                   />
-                  <Button className="bg-purple-500 text-white w-full" onClick={addComment}>
-                    Add Comment
-                  </Button>
+                  <img
+                    src="/koala-animated.gif"
+                    alt="Koala"
+                    className="absolute bottom-4 right-4 w-16 h-16 sm:w-24 sm:h-24 opacity-80"
+                  />
+                </div>
+                
+                <div className="space-y-4">
+                  <div>
+                    <h3 className="text-lg sm:text-xl font-bold mb-2">Description 🌿</h3>
+                    <p className="bg-white border rounded p-3 text-sm sm:text-base">
+                      {selectedImage.description || 'No description'}
+                    </p>
+                  </div>
+
+                  <div>
+                    <h3 className="text-lg sm:text-xl font-bold mb-2">Comments 💬</h3>
+                    <div className="max-h-32 sm:max-h-48 overflow-y-auto mb-4 border rounded p-2 bg-white">
+                      {comments.map(comment => (
+                        <div key={comment.id} className="p-2 border-b last:border-b-0 flex justify-between items-start gap-2">
+                          <p className="flex-1 text-sm sm:text-base">{comment.content}</p>
+                          <Trash2 
+                            className="text-red-400 cursor-pointer w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0 transition-colors duration-300 hover:text-red-600" 
+                            onClick={() => deleteComment(comment.id)} 
+                          />
+                        </div>
+                      ))}
+                      {comments.length === 0 && <p className="text-gray-400 text-sm">No comments yet.</p>}
+                    </div>
+                    <Textarea
+                      placeholder="Write a comment..."
+                      value={newComment}
+                      onChange={(e) => setNewComment(e.target.value)}
+                      className="mb-2 transition-all duration-300 focus:ring-2 focus:ring-purple-400"
+                    />
+                    <Button 
+                      className="bg-purple-500 text-white w-full transition-all duration-300 hover:bg-purple-600 hover:scale-[1.02]" 
+                      onClick={addComment}
+                    >
+                      Add Comment
+                    </Button>
+                  </div>
                 </div>
               </div>
             )}
