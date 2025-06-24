@@ -38,47 +38,32 @@
     --radius: 0.5rem;
 
     --sidebar-background: 0 0% 98%;
-
     --sidebar-foreground: 240 5.3% 26.1%;
-
     --sidebar-primary: 240 5.9% 10%;
-
     --sidebar-primary-foreground: 0 0% 98%;
-
     --sidebar-accent: 240 4.8% 95.9%;
-
     --sidebar-accent-foreground: 240 5.9% 10%;
-
     --sidebar-border: 220 13% 91%;
-
     --sidebar-ring: 217.2 91.2% 59.8%;
   }
 
   .dark {
     --background: 222.2 84% 4.9%;
     --foreground: 210 40% 98%;
-
     --card: 222.2 84% 4.9%;
     --card-foreground: 210 40% 98%;
-
     --popover: 222.2 84% 4.9%;
     --popover-foreground: 210 40% 98%;
-
     --primary: 210 40% 98%;
     --primary-foreground: 222.2 47.4% 11.2%;
-
     --secondary: 217.2 32.6% 17.5%;
     --secondary-foreground: 210 40% 98%;
-
     --muted: 217.2 32.6% 17.5%;
     --muted-foreground: 215 20.2% 65.1%;
-
     --accent: 217.2 32.6% 17.5%;
     --accent-foreground: 210 40% 98%;
-
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 210 40% 98%;
-
     --border: 217.2 32.6% 17.5%;
     --input: 217.2 32.6% 17.5%;
     --ring: 212.7 26.8% 83.9%;
@@ -103,7 +88,7 @@
   }
 }
 
-/* Custom pixel art and cute koala theme styles */
+/* Custom pixel art and cute koala theme styles with soft animations */
 @layer utilities {
   .pixel-art {
     image-rendering: pixelated;
@@ -112,11 +97,12 @@
   }
   
   .cute-shadow {
-    box-shadow: 0 8px 25px -5px rgba(147, 51, 234, 0.3), 0 4px 6px -2px rgba(139, 92, 246, 0.2);
+    box-shadow: 0 10px 30px -8px rgba(147, 51, 234, 0.25), 0 6px 12px -4px rgba(139, 92, 246, 0.15);
+    transition: box-shadow 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
   }
   
   .bounce-cute {
-    animation: bounce-cute 2s infinite;
+    animation: bounce-cute 3s infinite ease-in-out;
   }
   
   @keyframes bounce-cute {
@@ -124,31 +110,61 @@
       transform: translateY(0);
     }
     40% {
-      transform: translateY(-10px);
+      transform: translateY(-8px);
     }
     60% {
-      transform: translateY(-5px);
+      transform: translateY(-4px);
     }
   }
   
   .wobble {
-    animation: wobble 1s ease-in-out infinite;
+    animation: wobble 2s ease-in-out infinite;
   }
   
   @keyframes wobble {
     0% { transform: rotate(0deg); }
-    15% { transform: rotate(5deg); }
-    30% { transform: rotate(-5deg); }
-    45% { transform: rotate(3deg); }
-    60% { transform: rotate(-2deg); }
-    75% { transform: rotate(1deg); }
+    10% { transform: rotate(2deg); }
+    20% { transform: rotate(-2deg); }
+    30% { transform: rotate(1.5deg); }
+    40% { transform: rotate(-1.5deg); }
+    50% { transform: rotate(1deg); }
+    60% { transform: rotate(-1deg); }
+    70% { transform: rotate(0.5deg); }
+    80% { transform: rotate(-0.5deg); }
     100% { transform: rotate(0deg); }
+  }
+
+  /* Soft fade animations */
+  .fade-in {
+    animation: fadeIn 0.6s cubic-bezier(0.25, 0.8, 0.25, 1);
+  }
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(20px) scale(0.95);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+  }
+
+  /* Smooth hover transitions */
+  .smooth-hover {
+    transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
   }
 }
 
-/* Cute scrollbar with koala theme */
+/* Cute scrollbar with koala theme - improved for mobile */
 ::-webkit-scrollbar {
-  width: 12px;
+  width: 8px;
+}
+
+@media (min-width: 768px) {
+  ::-webkit-scrollbar {
+    width: 12px;
+  }
 }
 
 ::-webkit-scrollbar-track {
@@ -160,8 +176,40 @@
   background: linear-gradient(45deg, #a855f7, #8b5cf6);
   border-radius: 10px;
   border: 2px solid #faf5ff;
+  transition: background 0.3s ease;
 }
 
 ::-webkit-scrollbar-thumb:hover {
   background: linear-gradient(45deg, #9333ea, #7c3aed);
+}
+
+/* Enhanced dialog animations */
+@layer components {
+  .dialog-overlay {
+    animation: overlayShow 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .dialog-content {
+    animation: contentShow 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  @keyframes overlayShow {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  @keyframes contentShow {
+    from {
+      opacity: 0;
+      transform: translate(-50%, -48%) scale(0.96);
+    }
+    to {
+      opacity: 1;
+      transform: translate(-50%, -50%) scale(1);
+    }
+  }
 }
