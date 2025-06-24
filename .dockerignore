@@ -1,0 +1,18 @@
+# Node modules locais (usa só o que for instalado dentro do container)
+node_modules
+
+# Pasta de build local
+dist
+
+# Arquivos de configuração de editor e sistema
+.vscode
+.DS_Store
+
+# Variáveis de ambiente locais e logs
+.env
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Arquivos temporários
+*.log

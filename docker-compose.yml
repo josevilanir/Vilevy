@@ -1,0 +1,22 @@
+version: "3.8"
+
+services:
+  backend:
+    build: ./backend-pixel-pal
+    ports:
+      - "4000:4000"
+    volumes:
+      - ./backend-pixel-pal/uploads:/app/uploads
+    restart: always
+
+  frontend:
+    build:
+      context: .
+      args:
+        # aqui estamos dizendo: no build, ENABLE_PWA será false
+        ENABLE_PWA: "false"
+    ports:
+      - "4173:80"
+    depends_on:
+      - backend
+    restart: always
