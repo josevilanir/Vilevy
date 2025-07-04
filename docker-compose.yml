@@ -1,13 +1,29 @@
-version: '3.9'
-
 services:
+  db:
+    image: postgres:15
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: pixelpal
+    volumes:
+      - db-data:/var/lib/postgresql/data
+
   backend:
     build: ./backend-pixel-pal
     ports:
       - "4000:4000"
+    environment:
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_USER: postgres
+      DB_PASS: postgres
+      DB_NAME: pixelpal
+    depends_on:
+      - db
+    restart: always
     volumes:
       - ./backend-pixel-pal/uploads:/app/uploads
-    restart: always
 
   frontend:
     build: .
@@ -19,9 +35,5 @@ services:
       - backend
     restart: always
 
-# Se preferir usar arquivo .env, descomente abaixo e comente a seção environment:
-#
-# env_file:
-#   - .env
-#
-# onde .env define: VITE_API_URL=http://backend:4000
+volumes:
+  db-data:

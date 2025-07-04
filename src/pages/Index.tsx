@@ -148,7 +148,7 @@ const Index = () => {
       });
 
       xhr.onload = () => {
-        if (xhr.status === 200) {
+        if (xhr.status >= 200 && xhr.status < 300) {
           fetchPhotos();
           setUploadingFiles(prev => prev.filter(f => f.file !== uploadingFile.file));
           toast({ title: 'Upload complete! 🐨' });
