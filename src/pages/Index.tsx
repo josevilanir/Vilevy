@@ -6,6 +6,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
 import { Heart, Image as ImageIcon, Trash2, UploadCloud } from 'lucide-react';
+import { Link } from "react-router-dom";
 
 interface Photo {
   id: number;
@@ -193,6 +194,13 @@ const Index = () => {
             A cute eucalyptus-scented place to store all your precious memories together! 🐨🌿
           </p>
         </div>
+      </div>
+
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-2xl font-bold">Fotos</h1>
+        <Button asChild variant="outline">
+          <Link to="/albums">Álbuns</Link>
+        </Button>
       </div>
 
       <div className="max-w-6xl mx-auto mb-8 sm:mb-10">
