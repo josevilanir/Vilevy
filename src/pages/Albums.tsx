@@ -1,111 +1,75 @@
-// src/pages/Albums.tsx
-import { useEffect, useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
-import { ArrowLeft, Trash2 } from 'lucide-react'
-import { Card } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Textarea } from '@/components/ui/textarea'
-import { useToast } from '@/hooks/use-toast'
-import { fetchAlbums, createAlbum, deleteAlbum, type Album } from '@/services/albumService'
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useToast } from "@/hooks/use-toast";
+import { fetchAlbums, createAlbum, deleteAlbum, type Album } from "@/services/albumService";
+
+import BackButton from "./components/BackButton";
+import AlbumForm from "./components/AlbumForm";
+import AlbumCard from "./components/AlbumCard";
 
 export default function Albums() {
-  const [albums, setAlbums] = useState<Album[]>([])
-  const [name, setName] = useState('')
-  const [description, setDescription] = useState('')
-  const { toast } = useToast()
-  const navigate = useNavigate()
-
-    // Botão para voltar à página inicial de fotos
-  const BackButton = () => (
-    <Button asChild variant="link" className="mb-4">
-      <Link to="/">
-        <ArrowLeft className="inline mr-1" /> Voltar para fotos
-      </Link>
-    </Button>
-  )
-
+  const [albums, setAlbums] = useState<Album[]>([]);
+  const [name, setName] = useState("");
+  const [description, setDescription] = useState("");
+  const { toast } = useToast();
+  const navigate = useNavigate();
 
   const load = async () => {
     try {
-      const data = await fetchAlbums()
-      setAlbums(data)
+      const data = await fetchAlbums();
+      setAlbums(data);
     } catch (err: any) {
-      toast({ title: 'Erro', description: err.message, variant: 'destructive' })
+      toast({ title: "Erro", description: err.message, variant: "destructive" });
     }
-  }
-  useEffect(() => { load() }, [])
+  };
+
+  useEffect(() => {
+    load();
+  }, []);
 
   const handleCreate = async () => {
     try {
-      const alb = await createAlbum(name, description)
-      setAlbums([alb, ...albums])
-      setName('')
-      setDescription('')
-      toast({ title: 'Sucesso', description: 'Álbum criado!' })
-      // redireciona para tela de adicionar fotos
-      navigate(`/albums/${alb.id}/add`)
+      const alb = await createAlbum(name, description);
+      setAlbums([alb, ...albums]);
+      setName("");
+      setDescription("");
+      toast({ title: "Sucesso", description: "Álbum criado!" });
+      navigate(`/albums/${alb.id}/add`);
     } catch (err: any) {
-      toast({ title: 'Erro', description: err.message, variant: 'destructive' })
+      toast({ title: "Erro", description: err.message, variant: "destructive" });
     }
-  }
+  };
 
   const handleDelete = async (id: number) => {
-    if (!confirm('Deletar este álbum?')) return
+    if (!confirm("Deletar este álbum?")) return;
     try {
-      await deleteAlbum(id)
-      setAlbums(albums.filter(a => a.id !== id))
-      toast({ title: 'Sucesso', description: 'Álbum deletado.' })
+      await deleteAlbum(id);
+      setAlbums(albums.filter((a) => a.id !== id));
+      toast({ title: "Sucesso", description: "Álbum deletado." });
     } catch (err: any) {
-      toast({ title: 'Erro', description: err.message, variant: 'destructive' })
+      toast({ title: "Erro", description: err.message, variant: "destructive" });
     }
-  }
+  };
 
   return (
     <div className="p-4">
       <BackButton />
-      
+
       <h1 className="text-2xl font-bold mb-4">Álbuns</h1>
 
-      <div className="flex flex-col sm:flex-row gap-2 mb-6">
-        <Input
-          placeholder="Nome do álbum"
-          value={name}
-          onChange={e => setName(e.currentTarget.value)}
-        />
-        <Textarea
-          placeholder="Descrição (opcional)"
-          value={description}
-          onChange={e => setDescription(e.currentTarget.value)}
-        />
-        <Button onClick={handleCreate} className="whitespace-nowrap">
-          Criar e Adicionar Fotos
-        </Button>
-      </div>
+      <AlbumForm
+        name={name}
+        description={description}
+        setName={setName}
+        setDescription={setDescription}
+        handleCreate={handleCreate}
+      />
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        {albums.map(album => (
-          <Card key={album.id} className="p-4">
-            <h2 className="text-lg font-semibold">{album.name}</h2>
-            <p className="text-sm text-zinc-600 mb-2">{album.description}</p>
-            <div className="flex justify-between">
-              <Button variant="outline" asChild size="sm">
-                <Link to={`/albums/${album.id}`}>Ver Álbum</Link>
-              </Button>
-              <Button variant="secondary" asChild size="sm">
-                <Link to={`/albums/${album.id}/add`}>Adicionar Fotos</Link>
-              </Button>
-              <Button
-                variant="destructive"
-                size="sm"
-                onClick={() => handleDelete(album.id)}
-              >
-                <Trash2 size={16} />
-              </Button>
-            </div>
-          </Card>
+        {albums.map((album) => (
+          <AlbumCard key={album.id} album={album} onDelete={handleDelete} />
         ))}
       </div>
     </div>
-  )
+  );
 }
