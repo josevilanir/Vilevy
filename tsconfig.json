@@ -6,9 +6,9 @@
   ],
   "include": ["vite-env.d.ts"],
   "compilerOptions": {
-    "baseUrl": ".",
+    "baseUrl": "src",
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["*"]
     },
     "noImplicitAny": false,
     "noUnusedParameters": false,

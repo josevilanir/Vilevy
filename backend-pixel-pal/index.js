@@ -110,13 +110,17 @@ const upload = multer({ storage });
 // 1) Listar todos os álbuns
 app.get('/albums', async (req, res) => {
   try {
-    const { rows } = await pool.query(
-      'SELECT * FROM albums ORDER BY created_at DESC'
-    );
-    res.json(rows);
+    const result = await pool.query(`
+      SELECT 
+        a.*, 
+        p.file_path AS cover_photo_file_path
+      FROM albums a
+      LEFT JOIN photos p ON a.cover_photo_id = p.id
+      ORDER BY a.id DESC
+    `);
+    res.json(result.rows);
   } catch (err) {
-    console.error('GET /albums error:', err);
-    res.sendStatus(500);
+    res.status(500).json({ error: 'Erro ao buscar álbuns' });
   }
 });
 
@@ -138,21 +142,38 @@ app.post('/albums', async (req, res) => {
 });
 
 app.get('/albums/:albumId', async (req, res) => {
-  const { albumId } = req.params
+  const { albumId } = req.params;
   try {
-    const { rows } = await pool.query(
-      'SELECT id, name, description, created_at FROM albums WHERE id = $1',
-      [albumId]
-    )
-    if (rows.length === 0) {
-      return res.status(404).json({ error: 'Álbum não encontrado' })
+    const result = await pool.query(`
+      SELECT 
+        a.*, 
+        p.file_path AS cover_photo_file_path
+      FROM albums a
+      LEFT JOIN photos p ON a.cover_photo_id = p.id
+      WHERE a.id = $1
+    `, [albumId]);
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Álbum não encontrado' });
     }
-    res.json(rows[0])
+    res.json(result.rows[0]);
   } catch (err) {
-    console.error('GET /albums/:albumId error:', err)
-    res.status(500).json({ error: 'Erro interno no servidor' })
+    res.status(500).json({ error: 'Erro ao buscar álbum' });
   }
-})
+});
+
+app.put('/albums/:albumId/cover', async (req, res) => {
+  const { albumId } = req.params;
+  const { photoId } = req.body;
+  try {
+    await pool.query(
+      'UPDATE albums SET cover_photo_id = $1 WHERE id = $2',
+      [photoId, albumId]
+    );
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: 'Erro ao definir capa do álbum' });
+  }
+});
 
 // 3) Listar fotos de um álbum
 app.get('/albums/:albumId/photos', async (req, res) => {

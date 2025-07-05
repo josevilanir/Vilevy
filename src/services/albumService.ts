@@ -8,6 +8,8 @@ export interface Album {
   name: string
   description: string
   created_at: string
+  cover_photo_id?: number | null;
+  cover_photo_file_path?: string | null;
 }
 
 // metadados de fotos dentro de um álbum (o que o backend retorna em GET /albums/:id/photos)
@@ -79,4 +81,14 @@ export async function fetchAlbum(albumId: number): Promise<Album> {
   const res = await fetch(`${API_URL}/albums/${albumId}`)
   if (!res.ok) throw new Error('Erro ao buscar dados do álbum')
   return res.json()
+}
+
+export async function setAlbumCover(albumId: number, photoId: number) {
+  const res = await fetch(`${API_URL}/albums/${albumId}/cover`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ photoId })
+  });
+  if (!res.ok) throw new Error('Erro ao definir capa');
+  return res.json();
 }
