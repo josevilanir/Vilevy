@@ -1,10 +1,9 @@
-// src/pages/AlbumAddPhotos.tsx
 import './styles/albumDetails.css'
 import { useEffect, useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
-import { ArrowLeft } from 'lucide-react'
 import { useToast } from '@/hooks/use-toast'
+import { ArrowLeft } from 'lucide-react'
 
 import { fetchPhotos, type Photo } from '@/services/photoService'
 import {
@@ -12,6 +11,9 @@ import {
   addPhotoToAlbum,
   type PaginatedPhotos
 } from '@/services/albumService'
+
+import BackButton from './components/BackButton'
+import AvailablePhotosGrid from './components/AvailablePhotosGrid'
 
 export default function AlbumAddPhotos() {
   const { albumId } = useParams<{ albumId: string }>()
@@ -24,7 +26,7 @@ export default function AlbumAddPhotos() {
     try {
       const [photos, paged] = await Promise.all([
         fetchPhotos(),
-        fetchAlbumPhotos(+albumId, 1, 1000) // Busca até 1000 fotos do álbum
+        fetchAlbumPhotos(+albumId, 1, 1000)
       ])
       setAllPhotos(photos)
       setAlbumPhotos(paged.photos)
@@ -35,9 +37,7 @@ export default function AlbumAddPhotos() {
 
   useEffect(() => { load() }, [albumId])
 
-  // ids das fotos já no álbum
   const albumIds = new Set(albumPhotos.map(p => p.id))
-  // disponíveis = todas menos as já associadas
   const available = allPhotos.filter(p => !albumIds.has(p.id))
 
   const handleAdd = async (photoId: number) => {
@@ -68,23 +68,7 @@ export default function AlbumAddPhotos() {
         {available.length === 0 ? (
           <p className="album-empty">Não há fotos disponíveis.</p>
         ) : (
-          <div className="album-photos-grid">
-            {available.map((photo) => (
-              <div key={photo.id} className="album-card">
-                <img
-                  src={`http://${window.location.hostname}:4000/uploads/${photo.file_path}`}
-                  alt={photo.name}
-                  className="album-card-img"
-                />
-                <div className="album-card-caption">
-                  <p className="text-sm">{photo.name}</p>
-                  <Button size="sm" variant="outline" onClick={() => handleAdd(photo.id)}>
-                    Adicionar
-                  </Button>
-                </div>
-              </div>
-            ))}
-          </div>
+          <AvailablePhotosGrid photos={available} onAdd={handleAdd} />
         )}
       </section>
 
