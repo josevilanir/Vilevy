@@ -1,4 +1,5 @@
 // src/services/albumService.ts
+import type { Photo } from './photoService'
 const API_URL = import.meta.env.VITE_API_URL || `http://${window.location.hostname}:4000`
 
 // representa um álbum completo
@@ -13,6 +14,13 @@ export interface Album {
 export interface AlbumPhotoMeta {
   id: number
   name: string
+}
+
+export interface PaginatedPhotos {
+  photos: Photo[]
+  page: number
+  totalPages: number
+  total: number
 }
 
 // busca todos os álbuns
@@ -40,8 +48,14 @@ export async function deleteAlbum(id: number) {
 }
 
 // busca as fotos de um álbum (metadados)
-export async function fetchAlbumPhotos(albumId: number): Promise<AlbumPhotoMeta[]> {
-  const res = await fetch(`${API_URL}/albums/${albumId}/photos`)
+export async function fetchAlbumPhotos(
+  albumId: number,
+  page = 1,
+  limit = 5
+): Promise<PaginatedPhotos> {
+  const res = await fetch(
+    `${API_URL}/albums/${albumId}/photos?page=${page}&limit=${limit}`
+  )
   if (!res.ok) throw new Error('Erro ao buscar fotos do álbum')
   return res.json()
 }

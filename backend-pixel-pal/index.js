@@ -156,21 +156,37 @@ app.get('/albums/:albumId', async (req, res) => {
 
 // 3) Listar fotos de um álbum
 app.get('/albums/:albumId/photos', async (req, res) => {
+  const { albumId } = req.params
+  const page  = parseInt(req.query.page, 10)  || 1
+  const limit = parseInt(req.query.limit, 10) || 5
+  const offset = (page - 1) * limit
+
   try {
-    const { albumId } = req.params;
-    const { rows } = await pool.query(
-      `SELECT p.* FROM photos p
+    // Conta total
+    const cnt = await pool.query(
+      'SELECT count(*) FROM photo_albums WHERE album_id = $1',
+      [albumId]
+    )
+    const total = parseInt(cnt.rows[0].count, 10)
+    const totalPages = Math.ceil(total / limit)
+
+    // Busca página paginada
+    const { rows: photos } = await pool.query(
+      `SELECT p.id, p.name, p.description, p.file_path, p.taken_date, p.upload_date
+       FROM photos p
        JOIN photo_albums pa ON pa.photo_id = p.id
        WHERE pa.album_id = $1
-       ORDER BY p.upload_date DESC`,
-      [albumId]
-    );
-    res.json(rows);
+       ORDER BY p.id DESC        -- Aqui está a correção!
+       LIMIT $2 OFFSET $3`,
+      [albumId, limit, offset]
+    )
+
+    return res.json({ photos, page, totalPages, total })
   } catch (err) {
-    console.error('GET /albums/:albumId/photos error:', err);
-    res.sendStatus(500);
+    console.error('GET /albums/:albumId/photos pagination error:', err)
+    return res.status(500).json({ error: err.message })
   }
-});
+})
 
 // 4) Deletar um álbum (remove só o álbum, não toca nas fotos)
 app.delete('/albums/:albumId', async (req, res) => {
