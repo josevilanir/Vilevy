@@ -243,7 +243,7 @@ app.get('/photos', async (req, res) => {
 });
 
 // upload de nova foto
-app.post('/photos', upload.single('image'), async (req, res) => {
+app.post('/photos', upload.single('photo'), async (req, res) => {
   try {
     const { name, date: taken_date, description } = req.body;
     const file_path = req.file.filename;
