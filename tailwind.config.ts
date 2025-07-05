@@ -6,6 +6,7 @@ export default {
 		"./pages/**/*.{ts,tsx}",
 		"./components/**/*.{ts,tsx}",
 		"./app/**/*.{ts,tsx}",
+		'./src/pages/styles/**/*.css', 
 		"./src/**/*.{ts,tsx}",
 	],
 	prefix: "",

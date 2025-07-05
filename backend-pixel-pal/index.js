@@ -137,6 +137,23 @@ app.post('/albums', async (req, res) => {
   }
 });
 
+app.get('/albums/:albumId', async (req, res) => {
+  const { albumId } = req.params
+  try {
+    const { rows } = await pool.query(
+      'SELECT id, name, description, created_at FROM albums WHERE id = $1',
+      [albumId]
+    )
+    if (rows.length === 0) {
+      return res.status(404).json({ error: 'Álbum não encontrado' })
+    }
+    res.json(rows[0])
+  } catch (err) {
+    console.error('GET /albums/:albumId error:', err)
+    res.status(500).json({ error: 'Erro interno no servidor' })
+  }
+})
+
 // 3) Listar fotos de um álbum
 app.get('/albums/:albumId/photos', async (req, res) => {
   try {

@@ -60,3 +60,9 @@ export async function addPhotoToAlbum(albumId: number, photoId: number) {
     throw new Error(err?.error || 'Erro ao adicionar foto ao álbum')
   }
 }
+
+export async function fetchAlbum(albumId: number): Promise<Album> {
+  const res = await fetch(`${API_URL}/albums/${albumId}`)
+  if (!res.ok) throw new Error('Erro ao buscar dados do álbum')
+  return res.json()
+}

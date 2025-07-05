@@ -1,32 +1,36 @@
 // src/pages/AlbumDetails.tsx
+import './styles/albumDetails.css'
 import { useEffect, useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
-import { Card } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
 import { ArrowLeft } from 'lucide-react'
+import { Dialog, DialogTrigger, DialogContent, DialogClose } from '@/components/ui/dialog'
 import { useToast } from '@/hooks/use-toast'
 
 import { fetchPhotos, type Photo } from '@/services/photoService'
 import {
+  fetchAlbum,
   fetchAlbumPhotos,
-  addPhotoToAlbum,
+  type Album,
   type AlbumPhotoMeta
 } from '@/services/albumService'
 
 export default function AlbumDetails() {
   const { albumId } = useParams<{ albumId: string }>()
+  const [album, setAlbum] = useState<Album | null>(null)
   const [allPhotos, setAllPhotos] = useState<Photo[]>([])
   const [albumMeta, setAlbumMeta] = useState<AlbumPhotoMeta[]>([])
   const { toast } = useToast()
 
-  // carrega todas as fotos e os metadados do álbum
+  // Carrega dados do álbum e fotos
   const load = async () => {
     if (!albumId) return
     try {
-      const [photos, meta] = await Promise.all([
+      const [info, photos, meta] = await Promise.all([
+        fetchAlbum(+albumId),
         fetchPhotos(),
         fetchAlbumPhotos(+albumId),
       ])
+      setAlbum(info)
       setAllPhotos(photos)
       setAlbumMeta(meta)
     } catch (err: any) {
@@ -34,87 +38,113 @@ export default function AlbumDetails() {
     }
   }
 
-  useEffect(() => {
-    load()
-  }, [albumId])
+  useEffect(() => { load() }, [albumId])
+  if (!album) return null
 
-  // monta conjuntos de IDs para filtrar
-  const albumIds = new Set(albumMeta.map((p) => p.id))
-  const available = allPhotos.filter((p) => !albumIds.has(p.id))
-  const albumPhotos = allPhotos.filter((p) => albumIds.has(p.id))
+  // Filtra apenas fotos associadas
+  const ids = new Set(albumMeta.map(m => m.id))
+  const albumPhotos = allPhotos.filter(p => ids.has(p.id))
 
-  // associa foto ao álbum
-  const handleAdd = async (photoId: number) => {
-    if (!albumId) return
-    try {
-      await addPhotoToAlbum(+albumId, photoId)
-      toast({ title: 'Sucesso', description: 'Foto adicionada ao álbum!' })
-      load()
-    } catch (err: any) {
-      toast({ title: 'Erro', description: err.message, variant: 'destructive' })
-    }
-  }
+  // Divide em duas linhas (3 + 2) para efeito de álbum físico
+  const firstRow = albumPhotos.slice(0, 3)
+  const secondRow = albumPhotos.slice(3, 5)
 
   return (
-    <div className="p-4 space-y-8">
-      <Button asChild variant="link">
-        <Link to="/albums">
-          <ArrowLeft className="inline mr-1" /> Voltar aos álbuns
-        </Link>
-      </Button>
+    <div className="album-container">
+      <Link to="/albums" className="album-back">
+        <ArrowLeft /> Voltar aos álbuns
+      </Link>
 
-      <h1 className="text-2xl font-bold">Álbum #{albumId}</h1>
+      <h1 className="album-header">
+        <span className="emoji">📸🐨</span>
+        {album.name}
+        <span className="emoji">💜</span>
+      </h1>
 
-      {/* Fotos disponíveis para adicionar */}
-      <section>
-        <h2 className="text-xl font-semibold mb-4">Adicionar fotos</h2>
-        {available.length === 0 ? (
-          <p className="text-zinc-600">Não há fotos disponíveis.</p>
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {available.map((photo) => (
-              <Card key={photo.id} className="p-2">
-                <img
-                  src={`http://${window.location.hostname}:4000/uploads/${photo.file_path}`}
-                  alt={photo.name}
-                  className="w-full h-40 object-cover rounded"
-                />
-                <div className="mt-2 flex justify-between items-center">
-                  <p className="text-sm">{photo.name}</p>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => handleAdd(photo.id)}
-                  >
-                    Adicionar
-                  </Button>
-                </div>
-              </Card>
-            ))}
-          </div>
-        )}
-      </section>
+      <section className="album-section">
+        <h2 className="album-section-title">Fotos do Álbum</h2>
 
-      {/* Fotos já no álbum */}
-      <section>
-        <h2 className="text-xl font-semibold mb-4">Fotos do álbum</h2>
         {albumPhotos.length === 0 ? (
-          <p className="text-zinc-600">Nenhuma foto associada ainda.</p>
+          <p className="album-empty">Nenhuma foto associada ainda.</p>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {albumPhotos.map((photo) => (
-              <Card key={photo.id} className="p-2">
-                <img
-                  src={`http://${window.location.hostname}:4000/uploads/${photo.file_path}`}
-                  alt={photo.name}
-                  className="w-full h-40 object-cover rounded"
-                />
-                <p className="mt-2 text-sm">{photo.name}</p>
-              </Card>
-            ))}
+          <div className="album-photos-shell">
+            <div className="grid grid-cols-3 gap-8 justify-items-center">
+              {firstRow.map(photo => (
+                <Dialog key={photo.id}>
+                  <DialogTrigger asChild>
+                    <div className="album-card">
+                      <img
+                        src={`http://${window.location.hostname}:4000/uploads/${photo.file_path}`}
+                        alt={photo.name}
+                        className="album-card-img"
+                      />
+                      <div className="album-card-caption">{photo.name}</div>
+                    </div>
+                  </DialogTrigger>
+                  <DialogContent className="p-0 bg-transparent flex justify-center items-center">
+                    <DialogClose className="absolute top-4 right-4 text-white text-2xl">×</DialogClose>
+                    <img
+                      src={`http://${window.location.hostname}:4000/uploads/${photo.file_path}`}
+                      alt={photo.name}
+                      className="max-w-full max-h-[90vh] rounded-lg"
+                    />
+                  </DialogContent>
+                </Dialog>
+              ))}
+            </div>
+            {secondRow.length > 0 && (
+              <div className="grid grid-cols-5 gap-8 mt-6 justify-items-center">
+                <div className="col-start-2">
+                  <Dialog>
+                    <DialogTrigger asChild>
+                      <div className="album-card">
+                        <img
+                          src={`http://${window.location.hostname}:4000/uploads/${secondRow[0].file_path}`}
+                          alt={secondRow[0].name}
+                          className="album-card-img"
+                        />
+                        <div className="album-card-caption">{secondRow[0].name}</div>
+                      </div>
+                    </DialogTrigger>
+                    <DialogContent className="p-0 bg-transparent flex justify-center items-center">
+                      <DialogClose className="absolute top-4 right-4 text-white text-2xl">×</DialogClose>
+                      <img
+                        src={`http://${window.location.hostname}:4000/uploads/${secondRow[0].file_path}`}
+                        alt={secondRow[0].name}
+                        className="max-w-full max-h-[90vh] rounded-lg"
+                      />
+                    </DialogContent>
+                  </Dialog>
+                </div>
+                {secondRow[1] && (
+                  <div className="col-start-4">
+                    <Dialog>
+                      <DialogTrigger asChild>
+                        <div className="album-card">
+                          <img
+                            src={`http://${window.location.hostname}:4000/uploads/${secondRow[1].file_path}`}
+                            alt={secondRow[1].name}
+                            className="album-card-img"
+                          />
+                          <div className="album-card-caption">{secondRow[1].name}</div>
+                        </div>
+                      </DialogTrigger>
+                      <DialogContent className="p-0 bg-transparent flex justify-center items-center">
+                        <DialogClose className="absolute top-4 right-4 text-white text-2xl">×</DialogClose>
+                        <img
+                          src={`http://${window.location.hostname}:4000/uploads/${secondRow[1].file_path}`}
+                          alt={secondRow[1].name}
+                          className="max-w-full max-h-[90vh] rounded-lg"
+                        />
+                      </DialogContent>
+                    </Dialog>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         )}
       </section>
     </div>
-)
+  )
 }

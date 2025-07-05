@@ -7,6 +7,7 @@ import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import Albums from "./pages/Albums";
 import AlbumDetails from "./pages/AlbumDetails";
+import AlbumAddPhotos from './pages/AlbumAddPhotos'
 
 const queryClient = new QueryClient();
 
@@ -20,6 +21,7 @@ const App = () => (
           <Route path="/" element={<Index />} />
           <Route path="/albums" element={<Albums />} />
           <Route path="/albums/:albumId" element={<AlbumDetails />} />
+          <Route path="/albums/:albumId/add" element={<AlbumAddPhotos />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

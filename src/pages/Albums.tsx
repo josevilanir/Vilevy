@@ -1,24 +1,30 @@
 // src/pages/Albums.tsx
 import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
+import { ArrowLeft, Trash2 } from 'lucide-react'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
-import { Trash2 } from 'lucide-react'
 import { useToast } from '@/hooks/use-toast'
-import {
-  fetchAlbums,
-  createAlbum,
-  deleteAlbum,
-  type Album
-} from '@/services/albumService'
+import { fetchAlbums, createAlbum, deleteAlbum, type Album } from '@/services/albumService'
 
 export default function Albums() {
   const [albums, setAlbums] = useState<Album[]>([])
   const [name, setName] = useState('')
   const [description, setDescription] = useState('')
   const { toast } = useToast()
+  const navigate = useNavigate()
+
+    // Botão para voltar à página inicial de fotos
+  const BackButton = () => (
+    <Button asChild variant="link" className="mb-4">
+      <Link to="/">
+        <ArrowLeft className="inline mr-1" /> Voltar para fotos
+      </Link>
+    </Button>
+  )
+
 
   const load = async () => {
     try {
@@ -28,7 +34,6 @@ export default function Albums() {
       toast({ title: 'Erro', description: err.message, variant: 'destructive' })
     }
   }
-
   useEffect(() => { load() }, [])
 
   const handleCreate = async () => {
@@ -38,6 +43,8 @@ export default function Albums() {
       setName('')
       setDescription('')
       toast({ title: 'Sucesso', description: 'Álbum criado!' })
+      // redireciona para tela de adicionar fotos
+      navigate(`/albums/${alb.id}/add`)
     } catch (err: any) {
       toast({ title: 'Erro', description: err.message, variant: 'destructive' })
     }
@@ -56,6 +63,8 @@ export default function Albums() {
 
   return (
     <div className="p-4">
+      <BackButton />
+      
       <h1 className="text-2xl font-bold mb-4">Álbuns</h1>
 
       <div className="flex flex-col sm:flex-row gap-2 mb-6">
@@ -70,7 +79,7 @@ export default function Albums() {
           onChange={e => setDescription(e.currentTarget.value)}
         />
         <Button onClick={handleCreate} className="whitespace-nowrap">
-          Criar
+          Criar e Adicionar Fotos
         </Button>
       </div>
 
@@ -79,12 +88,12 @@ export default function Albums() {
           <Card key={album.id} className="p-4">
             <h2 className="text-lg font-semibold">{album.name}</h2>
             <p className="text-sm text-zinc-600 mb-2">{album.description}</p>
-            <p className="text-xs text-zinc-500 mb-4">
-              Criado em: {new Date(album.created_at).toLocaleDateString()}
-            </p>
             <div className="flex justify-between">
               <Button variant="outline" asChild size="sm">
-                <Link to={`/albums/${album.id}`}>Ver Fotos</Link>
+                <Link to={`/albums/${album.id}`}>Ver Álbum</Link>
+              </Button>
+              <Button variant="secondary" asChild size="sm">
+                <Link to={`/albums/${album.id}/add`}>Adicionar Fotos</Link>
               </Button>
               <Button
                 variant="destructive"
@@ -98,5 +107,5 @@ export default function Albums() {
         ))}
       </div>
     </div>
-)
+  )
 }
