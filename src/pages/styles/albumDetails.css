@@ -35,6 +35,26 @@
     @apply grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 justify-items-center;
   }
 
+  /* CARD DE FOTO DO ÁLBUM */
+  .album-photo-card {
+    border-radius: 1.25rem; /* bem arredondado */
+    background: #faf5ff;
+    border: 2.5px solid #dec9fa;
+    transition: 
+      transform 0.18s,
+      box-shadow 0.18s,
+      border-color 0.18s;
+    cursor: pointer;
+    overflow: hidden;
+  }
+  .album-photo-card:hover {
+    transform: scale(1.05) translateY(-4px);
+    box-shadow: 0 8px 32px 0 #c4b5fd55;
+    z-index: 2;
+    border-color: #b794f4;
+    background: #ede9fe;
+  }
+
   /* cartão de foto com leve rotação e efeito hover */
   .album-card {
     @apply border-2 border-dashed border-purple-200 rounded-xl overflow-hidden
