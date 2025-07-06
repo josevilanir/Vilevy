@@ -1,16 +1,18 @@
+import './styles/album.css';
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { fetchAlbums, createAlbum, deleteAlbum, type Album } from "@/services/albumService";
+import AlbumCreateModal from "./components/AlbumCreateModal"; // ajuste o path conforme sua pasta
 
 import BackButton from "./components/BackButton";
-import AlbumForm from "./components/AlbumForm";
 import AlbumCard from "./components/AlbumCard";
 
 export default function Albums() {
   const [albums, setAlbums] = useState<Album[]>([]);
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
+  const [showAlbumForm, setShowAlbumForm] = useState(false); // <-- Adicionado aqui!
   const { toast } = useToast();
   const navigate = useNavigate();
 
@@ -33,6 +35,7 @@ export default function Albums() {
       setAlbums([alb, ...albums]);
       setName("");
       setDescription("");
+      setShowAlbumForm(false); // Fecha o modal após criar
       toast({ title: "Sucesso", description: "Álbum criado!" });
       navigate(`/albums/${alb.id}/add`);
     } catch (err: any) {
@@ -52,20 +55,36 @@ export default function Albums() {
   };
 
   return (
-    <div className="p-4">
+    <div className="albums-container min-h-screen py-8">
       <BackButton />
 
-      <h1 className="text-2xl font-bold mb-4">Álbuns</h1>
+      <h1 className="albums-title">
+        <span role="img" aria-label="álbum">📚</span>
+        Álbuns
+        <span role="img" aria-label="câmera">📸</span>
+      </h1>
 
-      <AlbumForm
+      <div className="mb-8 flex justify-center">
+        <button
+          className="font-bold text-lg px-5 py-2 mb-6 flex items-center gap-2 bg-purple-600 text-white rounded-xl hover:bg-purple-800 transition"
+          onClick={() => setShowAlbumForm(true)}
+        >
+          <span className="text-2xl mr-2">➕</span>
+          Novo Álbum
+        </button>
+      </div>
+
+      <AlbumCreateModal
+        open={showAlbumForm}
+        onOpenChange={setShowAlbumForm}
         name={name}
-        description={description}
         setName={setName}
+        description={description}
         setDescription={setDescription}
-        handleCreate={handleCreate}
+        onCreate={handleCreate}
       />
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="albums-grid">
         {albums.map((album) => (
           <AlbumCard key={album.id} album={album} onDelete={handleDelete} />
         ))}
