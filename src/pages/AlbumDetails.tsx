@@ -76,9 +76,15 @@ export default function AlbumDetails() {
                 className="rounded-xl border-4 border-purple-200 mb-2"
                 style={{ maxWidth: 420, maxHeight: 420, background: "#f5ecff" }}
               />
-              <div className="w-full text-center text-lg font-bold text-purple-800 mb-1">{selectedPhoto.name}</div>
+              <div className="w-full text-center text-lg font-bold text-purple-800 mb-1">
+                {selectedPhoto.name}
+              </div>
               {selectedPhoto.description && (
-                <div className="w-full text-center text-purple-500 text-base mb-2">{selectedPhoto.description}</div>
+                <div className="w-full flex items-center justify-center gap-2 text-purple-500 text-base mb-2">
+                  <span role="img" aria-label="álbum">📸</span>
+                  <span className="text-center">{selectedPhoto.description}</span>
+                  <span role="img" aria-label="álbum">📸</span>
+                </div>
               )}
             </>
           )}
@@ -96,46 +102,54 @@ export default function AlbumDetails() {
             photos.map(photo => (
               <div
                 key={photo.id}
-                className={`album-photo-card ${album.cover_photo_id === photo.id ? 'album-photo-cover' : ''}`}
+                className={`album-photo-card flex flex-col overflow-hidden rounded-2xl ${album.cover_photo_id === photo.id ? 'album-photo-cover' : ''}`}
                 style={{
-                border: album.cover_photo_id === photo.id
-                  ? '3px solid #b794f4'
-                  : '1.5px dashed #e2e8f0',
-                cursor: 'pointer'
-              }}
-              onClick={() => setSelectedPhoto(photo)}
-            >
-              <img
-              src={`${API_URL}/uploads/${photo.file_path}`}
-              alt={photo.name}
-              className="album-photo-img"
-              style={{ objectFit: "cover", width: "100%", height: 200 }}
-            />
-            <div className="album-photo-caption flex items-center">
-              <span>{photo.name}</span>
-              {album.cover_photo_id === photo.id && (
-                <Star className="ml-2 text-yellow-400" fill="#facc15" size={20} />
-              )}
-            </div>
-            <div className="flex justify-end mt-2">
-            <Button
-              size="icon"
-              variant={album.cover_photo_id === photo.id ? "secondary" : "outline"}
-              disabled={album.cover_photo_id === photo.id || isSettingCover === photo.id}
-              onClick={e => {
-                e.stopPropagation();
-                handleSetCover(photo.id);
-              }}
-              className="ml-1"
-              title="Definir como capa"
-            >
-              {album.cover_photo_id === photo.id
-                ? <Star size={18} className="text-yellow-400" fill="#facc15" />
-                : <ArrowUpCircle size={18} className="text-purple-500" />}
-              </Button>
-            </div>
-          </div>
-        ))
+                  border: album.cover_photo_id === photo.id
+                    ? '3px solid #b794f4'
+                    : '1.5px dashed #e2e8f0',
+                  cursor: 'pointer',
+                  background: "#f8f7fc",
+                  boxShadow: "0 2px 12px #e9d5ff44"
+                }}
+                onClick={() => setSelectedPhoto(photo)}
+              >
+                <img
+                  src={`${API_URL}/uploads/${photo.file_path}`}
+                  alt={photo.name}
+                  className="w-full rounded-2xl object-cover aspect-[4/5] bg-purple-50"
+                />
+                <div className="album-photo-caption flex flex-col items-center justify-center w-full mt-2 px-2">
+                  <div className="flex items-center gap-2 justify-center w-full">
+                    <span role="img" aria-label="coala">🐨</span>
+                    <span className="truncate">{photo.name}</span>
+                    <span role="img" aria-label="coala">🐨</span>
+                    {album.cover_photo_id === photo.id && (
+                      <Star className="ml-2 text-yellow-400" fill="#facc15" size={20} />
+                    )}
+                  </div>
+                  {photo.description && (
+                    <span className="text-xs text-purple-500 mt-1 text-center w-full">{photo.description}</span>
+                  )}
+                </div>
+                <div className="flex justify-end mt-2 px-2 pb-2">
+                  <Button
+                    size="icon"
+                    variant={album.cover_photo_id === photo.id ? "secondary" : "outline"}
+                    disabled={album.cover_photo_id === photo.id || isSettingCover === photo.id}
+                    onClick={e => {
+                      e.stopPropagation();
+                      handleSetCover(photo.id);
+                    }}
+                    className="ml-1"
+                    title="Definir como capa"
+                  >
+                    {album.cover_photo_id === photo.id
+                      ? <Star size={18} className="text-yellow-400" fill="#facc15" />
+                      : <ArrowUpCircle size={18} className="text-purple-500" />}
+                  </Button>
+                </div>
+              </div>
+            ))
           )}
         </div>
         <AlbumPagination

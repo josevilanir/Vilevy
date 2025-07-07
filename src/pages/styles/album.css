@@ -52,11 +52,11 @@
   transition: box-shadow 0.2s, border-color 0.2s, transform 0.2s, background 0.2s;
 }
 .album-card:hover {
-  box-shadow: 0 4px 32px 0 #c4b5fd77;
+  box-shadow: 0 8px 36px 0 #a78bfa77;
   border-color: #b794f4;
   background: #f5ecff;
-  transform: scale(1.045);
-  z-index: 2;
+  transform: scale(1.05) translateY(-6px) rotate(-1.5deg);
+  z-index: 5;
 }
 
 .album-card img {

@@ -13,7 +13,7 @@ export default function AlbumCard({
   onDelete: (id: number) => void;
 }) {
   return (
-    <Card className="p-4 flex flex-col items-center" style={{ width: 'fit-content', minWidth: 220, maxWidth: 380 }}>
+    <Card className="album-card p-4 flex flex-col items-center" style={{ width: 'fit-content', minWidth: 220, maxWidth: 380 }}>
         {/* Thumbnail/capa */}
         {album.cover_photo_file_path ? (
             <img
