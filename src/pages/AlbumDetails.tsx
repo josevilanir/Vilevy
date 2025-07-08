@@ -12,6 +12,7 @@ import AlbumHeader from './components/AlbumHeader'
 import AlbumPagination from './components/AlbumPagination'
 import { Button } from '@/components/ui/button'
 import { API_URL } from '@/config'
+import PhotoDialog from "./components/photoDialog";
 
 export default function AlbumDetails() {
   const { albumId } = useParams<{ albumId: string }>()
@@ -27,6 +28,7 @@ export default function AlbumDetails() {
   const [selectedPhoto, setSelectedPhoto] = useState<null | typeof photos[0]>(null);
   const [hoveredPhoto, setHoveredPhoto] = useState(null);
   const [mouse, setMouse] = useState({ x: 0, y: 0 });
+  const [photoDialogIdx, setPhotoDialogIdx] = useState<number | null>(null);
   const previewRef = useRef(null);
   const loadPage = async (page: number) => {
     if (!albumId) return
@@ -114,63 +116,63 @@ export default function AlbumDetails() {
         {photos.length === 0 ? (
           <p className="album-empty">Nenhuma foto associada ainda.</p>
         ) : (
-          photos.map(photo => (
+          photos.map((photo, idx) => (
             <motion.div
-              key={photo.id}
-              className={`album-photo-card flex flex-col overflow-hidden rounded-2xl ${album.cover_photo_id === photo.id ? 'album-photo-cover' : ''}`}
-              style={{
-                border: album.cover_photo_id === photo.id
-                  ? '3px solid #b794f4'
-                  : '1.5px dashed #e2e8f0',
-                cursor: 'pointer',
-                background: "#f8f7fc",
-                boxShadow: "0 2px 12px #e9d5ff44"
-              }}
-              whileHover={{
-                scale: 1.045,
-                boxShadow: "0 8px 36px #a78bfa77",
-                zIndex: 4
-              }}
-              transition={{ type: "spring", stiffness: 420, damping: 22 }}
-              onClick={() => setSelectedPhoto(photo)}
-            >
-              <img
-                src={`${API_URL}/uploads/${photo.file_path}`}
-                alt={photo.name}
-                className="w-full rounded-2xl object-cover aspect-[4/5] bg-purple-50"
-              />
-              <div className="album-photo-caption flex flex-col items-center justify-center w-full mt-2 px-2">
-                <div className="flex items-center gap-2 justify-center w-full">
-                  <span role="img" aria-label="coala">🐨</span>
-                  <span className="truncate">{photo.name}</span>
-                  <span role="img" aria-label="coala">🐨</span>
-                  {album.cover_photo_id === photo.id && (
-                    <Star className="ml-2 text-yellow-400" fill="#facc15" size={20} />
-                  )}
-                </div>
-                {photo.description && (
-                  <span className="text-xs text-purple-500 mt-1 text-center w-full">{photo.description}</span>
+            key={photo.id}
+            className={`album-photo-card flex flex-col overflow-hidden rounded-2xl ${album.cover_photo_id === photo.id ? 'album-photo-cover' : ''}`}
+            style={{
+              border: album.cover_photo_id === photo.id
+                ? '3px solid #b794f4'
+                : '1.5px dashed #e2e8f0',
+              cursor: 'pointer',
+              background: "#f8f7fc",
+              boxShadow: "0 2px 12px #e9d5ff44"
+            }}
+            whileHover={{
+              scale: 1.045,
+              boxShadow: "0 8px 36px #a78bfa77",
+              zIndex: 4
+            }}
+            transition={{ type: "spring", stiffness: 420, damping: 22 }}
+            onClick={() => setPhotoDialogIdx(idx)} 
+          >
+            <img
+              src={`${API_URL}/uploads/${photo.file_path}`}
+              alt={photo.name}
+              className="w-full rounded-2xl object-cover aspect-[4/5] bg-purple-50"
+            />
+            <div className="album-photo-caption flex flex-col items-center justify-center w-full mt-2 px-2">
+              <div className="flex items-center gap-2 justify-center w-full">
+                <span role="img" aria-label="coala">🐨</span>
+                <span className="truncate">{photo.name}</span>
+                <span role="img" aria-label="coala">🐨</span>
+                {album.cover_photo_id === photo.id && (
+                  <Star className="ml-2 text-yellow-400" fill="#facc15" size={20} />
                 )}
               </div>
-              <div className="flex justify-end mt-2 px-2 pb-2">
-                <Button
-                  size="icon"
-                  variant={album.cover_photo_id === photo.id ? "secondary" : "outline"}
-                  disabled={album.cover_photo_id === photo.id || isSettingCover === photo.id}
-                  onClick={e => {
-                    e.stopPropagation();
-                    handleSetCover(photo.id);
-                  }}
-                  className="ml-1"
-                  title="Definir como capa"
-                >
-                  {album.cover_photo_id === photo.id
-                    ? <Star size={18} className="text-yellow-400" fill="#facc15" />
-                    : <ArrowUpCircle size={18} className="text-purple-500" />}
-                </Button>
-              </div>
-            </motion.div>
-          ))
+              {photo.description && (
+                <span className="text-xs text-purple-500 mt-1 text-center w-full">{photo.description}</span>
+              )}
+            </div>
+            <div className="flex justify-end mt-2 px-2 pb-2">
+              <Button
+                size="icon"
+                variant={album.cover_photo_id === photo.id ? "secondary" : "outline"}
+                disabled={album.cover_photo_id === photo.id || isSettingCover === photo.id}
+                onClick={e => {
+                  e.stopPropagation();
+                  handleSetCover(photo.id);
+                }}
+                className="ml-1"
+                title="Definir como capa"
+              >
+                {album.cover_photo_id === photo.id
+                  ? <Star size={18} className="text-yellow-400" fill="#facc15" />
+                  : <ArrowUpCircle size={18} className="text-purple-500" />}
+              </Button>
+            </div>
+          </motion.div>
+        ))
         )}
       </div>
       <AlbumPagination
@@ -179,6 +181,14 @@ export default function AlbumDetails() {
         setPage={p => setAlbumData(d => ({ ...d, page: Math.max(1, Math.min(totalPages, p)) }))}
       />
     </section>
+
+    {photoDialogIdx !== null && (
+      <PhotoDialog
+        photos={photos}
+        selectedIndex={photoDialogIdx}
+        onClose={() => setPhotoDialogIdx(null)}
+      />
+    )}
   </div>
 )
 }
