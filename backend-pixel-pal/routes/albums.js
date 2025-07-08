@@ -148,4 +148,27 @@ router.post('/:albumId/photos', async (req, res) => {
   }
 });
 
+// 6) Desassociar uma foto de um álbum (não deleta a foto do sistema)
+router.delete('/:albumId/photos/:photoId', async (req, res) => {
+  try {
+    const albumId = parseInt(req.params.albumId, 10);
+    const photoId = parseInt(req.params.photoId, 10);
+
+    if (isNaN(albumId) || isNaN(photoId)) {
+      return res.status(400).json({ error: 'albumId e photoId devem ser números' });
+    }
+
+    // Remove o vínculo
+    await pool.query(
+      `DELETE FROM photo_albums WHERE album_id = $1 AND photo_id = $2`,
+      [albumId, photoId]
+    );
+
+    res.sendStatus(204); // sucesso, sem conteúdo
+  } catch (err) {
+    console.error('DELETE /albums/:albumId/photos/:photoId error:', err);
+    res.status(500).json({ error: 'Erro ao desassociar foto do álbum' });
+  }
+});
+
 export default router;

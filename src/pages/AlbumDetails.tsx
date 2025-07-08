@@ -61,6 +61,22 @@ export default function AlbumDetails() {
     }
   }
 
+  const handleRemovePhoto = async (photoId: number) => {
+  if (!confirm("Tem certeza que deseja remover esta foto do álbum?")) return;
+  try {
+    await fetch(`${API_URL}/albums/${album.id}/photos/${photoId}`, {
+      method: "DELETE"
+    });
+    // Remove a foto do array do estado (para sumir da tela sem F5)
+    setAlbumData((data) => ({
+      ...data,
+      photos: data.photos.filter((p: any) => p.id !== photoId)
+    }));
+  } catch (err) {
+    alert("Erro ao remover a foto do álbum.");
+  }
+};
+
   const handleMouseMove = e => {
     setMouse({ x: e.clientX, y: e.clientY });
   };
@@ -154,7 +170,8 @@ export default function AlbumDetails() {
                 <span className="text-xs text-purple-500 mt-1 text-center w-full">{photo.description}</span>
               )}
             </div>
-            <div className="flex justify-end mt-2 px-2 pb-2">
+            <div className="flex justify-end gap-1 mt-2 px-2 pb-2">
+              {/* Botão de definir capa */}
               <Button
                 size="icon"
                 variant={album.cover_photo_id === photo.id ? "secondary" : "outline"}
@@ -169,6 +186,20 @@ export default function AlbumDetails() {
                 {album.cover_photo_id === photo.id
                   ? <Star size={18} className="text-yellow-400" fill="#facc15" />
                   : <ArrowUpCircle size={18} className="text-purple-500" />}
+              </Button>
+
+              {/* Botão de remover/desassociar */}
+              <Button
+                size="icon"
+                variant="ghost"
+                onClick={e => {
+                  e.stopPropagation();
+                  handleRemovePhoto(photo.id);
+                }}
+                title="Remover do álbum"
+                className="ml-1"
+              >
+                <span role="img" aria-label="Remover do álbum">❌</span>
               </Button>
             </div>
           </motion.div>
