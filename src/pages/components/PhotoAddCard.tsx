@@ -10,7 +10,7 @@ export default function PhotoAddCard({
   return (
     <div className="album-card">
       <img
-        src={`http://${window.location.hostname}:4000/uploads/${photo.file_path}`}
+        src={`${import.meta.env.VITE_API_URL}/uploads/${photo.file_path}`}
         alt={photo.name}
         className="album-card-img"
       />

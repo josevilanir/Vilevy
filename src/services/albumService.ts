@@ -1,6 +1,6 @@
 // src/services/albumService.ts
 import type { Photo } from './photoService'
-const API_URL = import.meta.env.VITE_API_URL || `http://${window.location.hostname}:4000`
+const API_URL = import.meta.env.VITE_API_URL
 
 // representa um álbum completo
 export interface Album {

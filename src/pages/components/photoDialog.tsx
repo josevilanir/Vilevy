@@ -2,7 +2,7 @@ import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { ArrowLeft, ArrowRight, X } from "lucide-react";
 import { useEffect, useState } from "react";
 
-const API_URL = import.meta.env.VITE_API_URL || `http://${window.location.hostname}:4000`;
+const API_URL = import.meta.env.VITE_API_URL
 
 export default function PhotoDialog({
   photos,

@@ -8,7 +8,7 @@ import PhotoUploader from './components/PhotoUploader'
 import PhotoGrid from './components/PhotoGrid'
 import PhotoModal from './components/PhotoModal'
 
-const API_URL = import.meta.env.VITE_API_URL || `http://${window.location.hostname}:4000`
+const API_URL = import.meta.env.VITE_API_URL
 
 export default function Index() {
   const [photos, setPhotos] = useState<any[]>([])

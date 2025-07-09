@@ -13,7 +13,7 @@ export default function PhotoModal({
   onAddComment,
   onDeleteComment
 }: any) {
-  const API_URL = `http://${window.location.hostname}:4000`;
+  const API_URL = import.meta.env.VITE_API_URL
   if (!photo) return null;
 
   return (

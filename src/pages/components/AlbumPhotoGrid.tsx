@@ -15,7 +15,7 @@ export default function AlbumPhotoGrid({ photos }: { photos: Photo[] }) {
             <DialogTrigger asChild>
               <div className="album-card cursor-pointer">
                 <img
-                  src={`http://${window.location.hostname}:4000/uploads/${photo.file_path}`}
+                  src={`${import.meta.env.VITE_API_URL}/uploads/${photo.file_path}`}
                   alt={photo.name}
                   className="album-card-img"
                 />
@@ -25,7 +25,7 @@ export default function AlbumPhotoGrid({ photos }: { photos: Photo[] }) {
             <DialogContent className="p-0 bg-transparent flex justify-center items-center">
               <DialogClose className="absolute top-4 right-4 text-white text-2xl">×</DialogClose>
               <img
-                src={`http://${window.location.hostname}:4000/uploads/${photo.file_path}`}
+                src={`${import.meta.env.VITE_API_URL}/uploads/${photo.file_path}`}
                 alt={photo.name}
                 className="max-w-full max-h-[90vh] rounded-lg shadow-xl"
               />

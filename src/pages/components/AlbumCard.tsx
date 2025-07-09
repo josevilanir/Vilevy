@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Trash2 } from "lucide-react";
 
-const API_URL = import.meta.env.VITE_API_URL || `http://${window.location.hostname}:4000`;
+const API_URL = import.meta.env.VITE_API_URL
 
 export default function AlbumCard({
   album,

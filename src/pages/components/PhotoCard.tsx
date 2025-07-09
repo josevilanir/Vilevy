@@ -10,7 +10,7 @@ export default function PhotoCard({
   onClick: () => void,
   onDelete: () => void
 }) {
-  const API_URL = `http://${window.location.hostname}:4000`;
+  const API_URL = import.meta.env.VITE_API_URL
   return (
     <Card className="bg-white border-4 border-pink-200 overflow-hidden hover:border-purple-300 transition-all duration-500 hover:scale-[1.02] hover:shadow-xl">
       <div className="aspect-square overflow-hidden">
