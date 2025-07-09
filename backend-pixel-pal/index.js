@@ -28,14 +28,6 @@ app.use('/albums', albumsRouter);
 app.use('/photos', photosRouter);
 app.use('/photos/:photoId/comments', commentsRouter);
 app.use('/tags', tagsRouter);
-
-// Serve arquivos estáticos do frontend (DEPOIS das rotas API)
-app.use(express.static(join(__dirname, '..', 'dist')));
-
-// SPA fallback: só para GET!
-app.get(/^\/(?!api|uploads).*/, (req, res) => {
-  res.sendFile(join(__dirname, '..', 'dist', 'index.html'));
-});
     
 // Inicializa banco E só então sobe o servidor
 (async () => {
