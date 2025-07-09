@@ -11,7 +11,6 @@ router.get('/', async (req, res) => {
       'SELECT * FROM comments WHERE photo_id = $1 ORDER BY created_at DESC',
       [photoId]
     );
-    console.log('rows:', rows);
     res.json(rows);
   } catch (err) {
     console.error(err);
