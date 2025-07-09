@@ -18,6 +18,7 @@ router.get('/', async (req, res) => {
     `);
     res.json(result.rows);
   } catch (err) {
+    console.error('Erro no GET /albums:', err);
     res.status(500).json({ error: 'Erro ao buscar álbuns' });
   }
 });
