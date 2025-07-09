@@ -24,7 +24,8 @@ export async function initDb() {
       id SERIAL PRIMARY KEY,
       name TEXT NOT NULL,
       description TEXT,
-      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      cover_photo_id INTEGER REFERENCES photos(id)
     );
     CREATE TABLE IF NOT EXISTS photo_albums (
       photo_id INTEGER REFERENCES photos(id) ON DELETE CASCADE,
