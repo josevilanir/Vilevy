@@ -1,6 +1,7 @@
 import { pool } from './db.js';
 
 export async function initDb() {
+  try {
   await pool.query(`
     -- -------- tabelas existentes --------
     CREATE TABLE IF NOT EXISTS photos (
@@ -40,4 +41,8 @@ export async function initDb() {
       PRIMARY KEY (photo_id, tag_id)
     );
   `);
-}
+  console.log('Tabelas criadas (ou já existiam)');
+  } catch (err) {
+    console.error('Erro ao criar tabelas:', err);
+  }
+  }
