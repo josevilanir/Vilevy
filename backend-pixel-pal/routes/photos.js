@@ -3,16 +3,18 @@ import { pool } from '../db.js';
 import multer from 'multer';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { dirname,join } from 'path';
+import { dirname } from 'path';
 import fs from 'fs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
-const UPLOAD_FOLDER = join(__dirname, '..', 'uploads');
+
+// USE O DISCO PERSISTENTE!
+const UPLOAD_FOLDER = '/data/uploads';
 
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    cb(null, path.join(__dirname, '..', 'uploads'));
+    cb(null, UPLOAD_FOLDER);
   },
   filename: function (req, file, cb) {
     // Salva a foto com timestamp para evitar conflitos
@@ -24,6 +26,7 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage });
 const router = express.Router();
+
 // lista todas as fotos
 router.get('/', async (req, res) => {
   try {

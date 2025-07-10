@@ -18,9 +18,9 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Serve arquivos estáticos de upload
-const UPLOAD_FOLDER = join(__dirname, 'uploads');
-if (!fs.existsSync(UPLOAD_FOLDER)) fs.mkdirSync(UPLOAD_FOLDER);
+// Serve arquivos estáticos de upload (PERSISTENT DISK!)
+const UPLOAD_FOLDER = '/data/uploads';
+if (!fs.existsSync(UPLOAD_FOLDER)) fs.mkdirSync(UPLOAD_FOLDER, { recursive: true });
 app.use('/uploads', express.static(UPLOAD_FOLDER));
 
 // Rotas da API (PRIMEIRO!)
@@ -28,7 +28,7 @@ app.use('/albums', albumsRouter);
 app.use('/photos', photosRouter);
 app.use('/photos/:photoId/comments', commentsRouter);
 app.use('/tags', tagsRouter);
-    
+
 // Inicializa banco E só então sobe o servidor
 (async () => {
   try {
