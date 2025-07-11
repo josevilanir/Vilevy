@@ -18,11 +18,12 @@ export default function Index() {
   const [uploadingFiles, setUploadingFiles] = useState<any[]>([])
   const { toast } = useToast()
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const [search, setSearch] = useState('');
 
   // BUSCA FOTOS
-  const fetchPhotos = async () => {
+  const fetchPhotos = async (query = '') => {
     try {
-      const res = await fetch(`${API_URL}/photos`)
+      const res = await fetch(`${API_URL}/photos${query ? `?q=${encodeURIComponent(query)}` : ''}`)
       if (!res.ok) throw new Error('Erro ao buscar fotos')
       const data = await res.json()
       setPhotos(data)
@@ -31,7 +32,13 @@ export default function Index() {
     }
   }
 
-  useEffect(() => { fetchPhotos() }, [])
+  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setSearch(value);
+    fetchPhotos(value);
+  };
+
+  useEffect(() => { fetchPhotos('') }, [])
 
   // UPLOAD HANDLER
   const handleFileInput = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -133,21 +140,32 @@ export default function Index() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-100 via-pink-50 to-violet-100 p-4 overflow-auto">
       <AlbumMainHeader />
-
+  
       <div className="flex justify-between items-center mb-6 max-w-6xl mx-auto">
         <h1 className="text-2xl font-bold">Fotos</h1>
         <Button asChild variant="outline">
           <Link to="/albums">Álbuns</Link>
         </Button>
       </div>
-
+  
+      {/* Barra de busca */}
+      <div className="max-w-6xl mx-auto mb-6">
+        <input
+          type="text"
+          placeholder="Buscar fotos por nome ou descrição..."
+          value={search}
+          onChange={handleSearch}
+          className="border p-2 rounded w-full"
+        />
+      </div>
+  
       <PhotoUploader
         uploadingFiles={uploadingFiles}
         setUploadingFiles={setUploadingFiles}
         startUpload={startUpload}
         handleFileInput={handleFileInput}
       />
-
+  
       {photos.length > 0 ? (
         <PhotoGrid
           photos={photos}
@@ -163,7 +181,7 @@ export default function Index() {
           <img src="/koala-animated.gif" alt="koala triste" className="mx-auto w-36 h-36 opacity-70" />
         </div>
       )}
-
+  
       <PhotoModal
         open={!!selectedImage}
         photo={selectedImage}

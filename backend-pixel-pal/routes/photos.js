@@ -27,12 +27,25 @@ const storage = multer.diskStorage({
 const upload = multer({ storage });
 const router = express.Router();
 
-// lista todas as fotos
+// lista todas as fotos, agora com busca!
 router.get('/', async (req, res) => {
+  const search = req.query.q;
   try {
-    const { rows } = await pool.query(
-      'SELECT * FROM photos ORDER BY id DESC'
-    );
+    let rows;
+    if (search) {
+      const { rows: searchRows } = await pool.query(
+        `SELECT * FROM photos
+         WHERE name ILIKE $1 OR description ILIKE $1
+         ORDER BY id DESC`,
+        [`%${search}%`]
+      );
+      rows = searchRows;
+    } else {
+      const { rows: allRows } = await pool.query(
+        'SELECT * FROM photos ORDER BY id DESC'
+      );
+      rows = allRows;
+    }
     res.json(rows);
   } catch (err) {
     console.error(err);
