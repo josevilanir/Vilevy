@@ -134,74 +134,83 @@ export default function AlbumDetails() {
         ) : (
           photos.map((photo, idx) => (
             <motion.div
-            key={photo.id}
-            className={`album-photo-card flex flex-col overflow-hidden rounded-2xl ${album.cover_photo_id === photo.id ? 'album-photo-cover' : ''}`}
-            style={{
-              border: album.cover_photo_id === photo.id
-                ? '3px solid #b794f4'
-                : '1.5px dashed #e2e8f0',
-              cursor: 'pointer',
-              background: "#f8f7fc",
-              boxShadow: "0 2px 12px #e9d5ff44"
-            }}
-            whileHover={{
-              scale: 1.045,
-              boxShadow: "0 8px 36px #a78bfa77",
-              zIndex: 4
-            }}
-            transition={{ type: "spring", stiffness: 420, damping: 22 }}
-            onClick={() => setPhotoDialogIdx(idx)} 
-          >
-            <img
-              src={`${API_URL}/uploads/${photo.file_path}`}
-              alt={photo.name}
-              className="w-full rounded-2xl object-cover aspect-[4/5] bg-purple-50"
-            />
-            <div className="album-photo-caption flex flex-col items-center justify-center w-full mt-2 px-2">
-              <div className="flex items-center gap-2 justify-center w-full">
-                <span role="img" aria-label="coala">🐨</span>
-                <span className="truncate">{photo.name}</span>
-                <span role="img" aria-label="coala">🐨</span>
-                {album.cover_photo_id === photo.id && (
-                  <Star className="ml-2 text-yellow-400" fill="#facc15" size={20} />
+              key={photo.id}
+              className={`
+                album-photo-card flex flex-col overflow-hidden rounded-2xl
+                ${album.cover_photo_id === photo.id ? 'album-photo-cover' : ''}
+                h-80 bg-white shadow
+              `}
+              style={{
+                border: album.cover_photo_id === photo.id
+                  ? '3px solid #b794f4'
+                  : '1.5px dashed #e2e8f0',
+                cursor: 'pointer',
+                background: "#f8f7fc",
+                boxShadow: "0 2px 12px #e9d5ff44"
+              }}
+              whileHover={{
+                scale: 1.045,
+                boxShadow: "0 8px 36px #a78bfa77",
+                zIndex: 4
+              }}
+              transition={{ type: "spring", stiffness: 420, damping: 22 }}
+              onClick={() => setPhotoDialogIdx(idx)} 
+            >
+              {/* Área da imagem: ocupa metade do card e nunca deforma */}
+              <div className="w-full h-1/2 flex items-center justify-center bg-purple-50 overflow-hidden">
+                <img
+                  src={`${API_URL}/uploads/${photo.file_path}`}
+                  alt={photo.name}
+                  className="w-full h-full object-cover"
+                  style={{ aspectRatio: '4/5', maxHeight: "100%" }}
+                />
+              </div>
+              {/* Área do título/descritivo */}
+              <div className="album-photo-caption flex flex-col items-center justify-center w-full mt-2 px-2 flex-1">
+                <div className="flex items-center gap-2 justify-center w-full">
+                  <span role="img" aria-label="coala">🐨</span>
+                  <span className="truncate">{photo.name}</span>
+                  <span role="img" aria-label="coala">🐨</span>
+                  {album.cover_photo_id === photo.id && (
+                    <Star className="ml-2 text-yellow-400" fill="#facc15" size={20} />
+                  )}
+                </div>
+                {photo.description && (
+                  <span className="text-xs text-purple-500 mt-1 text-center w-full line-clamp-2">{photo.description}</span>
                 )}
               </div>
-              {photo.description && (
-                <span className="text-xs text-purple-500 mt-1 text-center w-full">{photo.description}</span>
-              )}
-            </div>
-            <div className="flex justify-end gap-1 mt-2 px-2 pb-2">
-              {/* Botão de definir capa */}
-              <Button
-                size="icon"
-                variant={album.cover_photo_id === photo.id ? "secondary" : "outline"}
-                disabled={album.cover_photo_id === photo.id || isSettingCover === photo.id}
-                onClick={e => {
-                  e.stopPropagation();
-                  handleSetCover(photo.id);
-                }}
-                className="ml-1"
-                title="Definir como capa"
-              >
-                {album.cover_photo_id === photo.id
-                  ? <Star size={18} className="text-yellow-400" fill="#facc15" />
-                  : <ArrowUpCircle size={18} className="text-purple-500" />}
-              </Button>
+              <div className="flex justify-end gap-1 mt-2 px-2 pb-2">
+                {/* Botão de definir capa */}
+                <Button
+                  size="icon"
+                  variant={album.cover_photo_id === photo.id ? "secondary" : "outline"}
+                  disabled={album.cover_photo_id === photo.id || isSettingCover === photo.id}
+                  onClick={e => {
+                    e.stopPropagation();
+                    handleSetCover(photo.id);
+                  }}
+                  className="ml-1"
+                  title="Definir como capa"
+                >
+                  {album.cover_photo_id === photo.id
+                    ? <Star size={18} className="text-yellow-400" fill="#facc15" />
+                    : <ArrowUpCircle size={18} className="text-purple-500" />}
+                </Button>
 
-              {/* Botão de remover/desassociar */}
-              <Button
-                size="icon"
-                variant="ghost"
-                onClick={e => {
-                  e.stopPropagation();
-                  handleRemovePhoto(photo.id);
-                }}
-                title="Remover do álbum"
-                className="ml-1"
+                {/* Botão de remover/desassociar */}
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  onClick={e => {
+                    e.stopPropagation();
+                    handleRemovePhoto(photo.id);
+                  }}
+                  title="Remover do álbum"
+                  className="ml-1"
               >
-                <span role="img" aria-label="Remover do álbum">❌</span>
-              </Button>
-            </div>
+                  <span role="img" aria-label="Remover do álbum">❌</span>
+                </Button>
+              </div>
           </motion.div>
         ))
         )}
