@@ -211,4 +211,11 @@
       transform: translate(-50%, -50%) scale(1);
     }
   }
+  @layer utilities {
+    .font-dancing {
+      font-family: 'Dancing Script', cursive, sans-serif;
+      font-weight: 700;
+      letter-spacing: 0.01em;
+    }
+  }
 }
