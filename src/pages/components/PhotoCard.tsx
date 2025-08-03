@@ -1,14 +1,11 @@
 import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 
 export default function PhotoCard({
   photo,
-  onClick,
-  onDelete
+  onClick
 }: {
   photo: any,
-  onClick: () => void,
-  onDelete: () => void
+  onClick: () => void
 }) {
   const API_URL = import.meta.env.VITE_API_URL
   return (
@@ -29,12 +26,6 @@ export default function PhotoCard({
             🌿 {photo.description}
           </p>
         )}
-        <Button
-          onClick={onDelete}
-          className="w-full bg-red-500 hover:bg-red-600 text-white rounded-full mt-2 transition-colors duration-300"
-        >
-          Delete 🗑️
-        </Button>
       </div>
     </Card>
   )

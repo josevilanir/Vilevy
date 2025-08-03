@@ -1,4 +1,4 @@
-import { Dialog, DialogContent, DialogClose } from "@/components/ui/dialog";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -11,7 +11,8 @@ export default function PhotoModal({
   setNewComment,
   onClose,
   onAddComment,
-  onDeleteComment
+  onDeleteComment,
+  onDeletePhoto
 }: any) {
   const API_URL = import.meta.env.VITE_API_URL
   if (!photo) return null;
@@ -29,6 +30,17 @@ export default function PhotoModal({
         "
       >
         <div className="relative">
+          <Button
+            variant="destructive"
+            size="icon"
+            className="absolute top-2 right-2"
+            onClick={() => {
+              onDeletePhoto(photo.id)
+              onClose()
+            }}
+          >
+            <Trash2 className="h-4 w-4" />
+          </Button>
           <div className="max-w-4xl mx-auto">
             <img
               src={`${API_URL}/uploads/${photo.file_path}`}

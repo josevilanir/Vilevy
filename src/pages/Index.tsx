@@ -173,7 +173,6 @@ export default function Index() {
             setSelectedImage(photo)
             fetchComments(photo.id)
           }}
-          onDeletePhoto={deletePhoto}
         />
       ) : (
         <div className="text-center text-gray-500 mt-16">
@@ -191,6 +190,7 @@ export default function Index() {
         onClose={() => setSelectedImage(null)}
         onAddComment={addComment}
         onDeleteComment={deleteComment}
+        onDeletePhoto={deletePhoto}
       />
     </div>
   )
