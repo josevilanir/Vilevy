@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button'
 import AlbumMainHeader from './components/AlbumMainHeader'
 import PhotoUploader from './components/PhotoUploader'
 import PhotoGrid from './components/PhotoGrid'
-import PhotoModal from './components/PhotoModal'
+import Lightbox from './components/Lightbox'
 
 const API_URL = import.meta.env.VITE_API_URL
 
@@ -14,6 +14,9 @@ export default function Index() {
   const [photos, setPhotos] = useState<any[]>([])
   const [selectedImage, setSelectedImage] = useState<any>(null)
   const [comments, setComments] = useState<any[]>([])
+  const [lightboxOpen, setLightboxOpen] = useState(false)
+  const [lightboxIndex, setLightboxIndex] = useState(0)
+
   const [newComment, setNewComment] = useState('')
   const [uploadingFiles, setUploadingFiles] = useState<any[]>([])
   const { toast } = useToast()
@@ -170,8 +173,9 @@ export default function Index() {
         <PhotoGrid
           photos={photos}
           onPhotoClick={(photo: any) => {
-            setSelectedImage(photo)
-            fetchComments(photo.id)
+            const idx = photos.findIndex(p => p.id === photo.id)
+            setLightboxIndex(idx >= 0 ? idx : 0)
+            setLightboxOpen(true)
           }}
           onDeletePhoto={deletePhoto}
         />
@@ -182,15 +186,14 @@ export default function Index() {
         </div>
       )}
   
-      <PhotoModal
-        open={!!selectedImage}
-        photo={selectedImage}
-        comments={comments}
-        newComment={newComment}
-        setNewComment={setNewComment}
-        onClose={() => setSelectedImage(null)}
-        onAddComment={addComment}
-        onDeleteComment={deleteComment}
+      <Lightbox
+        photos={photos}
+        index={lightboxIndex}
+        open={lightboxOpen}
+        onClose={() => setLightboxOpen(false)}
+        onNext={() => setLightboxIndex((prev) => (prev + 1) % photos.length)}
+        onPrev={() => setLightboxIndex((prev) => (prev - 1 + photos.length) % photos.length)}
+        onDelete={(idx) => deletePhoto(photos[idx].id)}
       />
     </div>
   )
