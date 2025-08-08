@@ -10,42 +10,63 @@ import Lightbox from './components/Lightbox'
 
 const API_URL = import.meta.env.VITE_API_URL
 
+type Photo = {
+  id: number
+  name: string
+  file_path: string
+  upload_date?: string
+  description?: string
+}
+
+type Comment = { id: number; content: string }
+
 export default function Index() {
-  const [photos, setPhotos] = useState<any[]>([])
-  const [selectedImage, setSelectedImage] = useState<any>(null)
-  const [comments, setComments] = useState<any[]>([])
+  // Dados principais
+  const [photos, setPhotos] = useState<Photo[]>([])
+  const [comments, setComments] = useState<Comment[]>([])
+  const [newComment, setNewComment] = useState('')
+
+  // Upload
+  const [uploadingFiles, setUploadingFiles] = useState<any[]>([])
+  const fileInputRef = useRef<HTMLInputElement>(null)
+
+  // Busca
+  const [search, setSearch] = useState('')
+
+  // Lightbox
   const [lightboxOpen, setLightboxOpen] = useState(false)
   const [lightboxIndex, setLightboxIndex] = useState(0)
 
-  const [newComment, setNewComment] = useState('')
-  const [uploadingFiles, setUploadingFiles] = useState<any[]>([])
   const { toast } = useToast()
-  const fileInputRef = useRef<HTMLInputElement>(null)
-  const [search, setSearch] = useState('');
 
-  // BUSCA FOTOS
+  // -----------------------------
+  // Fotos
+  // -----------------------------
   const fetchPhotos = async (query = '') => {
     try {
       const res = await fetch(`${API_URL}/photos${query ? `?q=${encodeURIComponent(query)}` : ''}`)
       if (!res.ok) throw new Error('Erro ao buscar fotos')
-      const data = await res.json()
-      setPhotos(data)
+      setPhotos(await res.json())
     } catch (err: any) {
       toast({ title: 'Erro', description: err.message, variant: 'destructive' })
     }
   }
 
-  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    setSearch(value);
-    fetchPhotos(value);
-  };
-
   useEffect(() => { fetchPhotos('') }, [])
 
-  // UPLOAD HANDLER
+  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value
+    setSearch(value)
+    fetchPhotos(value)
+  }
+
+  // -----------------------------
+  // Upload
+  // -----------------------------
   const handleFileInput = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(e.target.files ?? [])
+    const files = Array.from(e.target.files || [])
+    if (!files.length) return
+
     const mapped = files.map(file => ({
       file,
       preview: URL.createObjectURL(file),
@@ -53,13 +74,13 @@ export default function Index() {
       customDescription: '',
       customDate: '',
       isUploading: false,
-      progress: 0
+      progress: 0,
     }))
+
     setUploadingFiles(prev => [...prev, ...mapped])
     e.target.value = ''
   }
 
-  // INICIA UPLOAD DE UM ARQUIVO
   const startUpload = async (fileObj: any) => {
     const formData = new FormData()
     formData.append('photo', fileObj.file)
@@ -67,28 +88,23 @@ export default function Index() {
     if (fileObj.customDescription) formData.append('description', fileObj.customDescription)
     if (fileObj.customDate) formData.append('taken_date', fileObj.customDate)
 
-    setUploadingFiles(prev =>
-      prev.map(f => f === fileObj ? { ...f, isUploading: true } : f)
-    )
+    setUploadingFiles(prev => prev.map(f => (f === fileObj ? { ...f, isUploading: true } : f)))
 
     try {
-      const res = await fetch(`${API_URL}/photos`, {
-        method: 'POST',
-        body: formData,
-      })
+      const res = await fetch(`${API_URL}/photos`, { method: 'POST', body: formData })
       if (!res.ok) throw new Error('Erro ao fazer upload')
       toast({ title: 'Sucesso', description: 'Foto enviada!' })
       setUploadingFiles(prev => prev.filter(f => f.file !== fileObj.file))
       fetchPhotos()
     } catch (err: any) {
       toast({ title: 'Erro', description: err.message, variant: 'destructive' })
-      setUploadingFiles(prev =>
-        prev.map(f => f === fileObj ? { ...f, isUploading: false } : f)
-      )
+      setUploadingFiles(prev => prev.map(f => (f === fileObj ? { ...f, isUploading: false } : f)))
     }
   }
 
-  // EXCLUI FOTO
+  // -----------------------------
+  // Exclusão de foto
+  // -----------------------------
   const deletePhoto = async (photoId: number) => {
     if (!window.confirm('Tem certeza que deseja excluir esta foto?')) return
     try {
@@ -96,61 +112,97 @@ export default function Index() {
       if (!res.ok) throw new Error('Erro ao excluir foto')
       toast({ title: 'Sucesso', description: 'Foto excluída!' })
       fetchPhotos()
-      setSelectedImage(null)
+      // Se a foto deletada estava aberta no lightbox, feche/ajuste
+      if (lightboxOpen) {
+        const idx = photos.findIndex(p => p.id === photoId)
+        if (idx === lightboxIndex) setLightboxOpen(false)
+      }
     } catch (err: any) {
       toast({ title: 'Erro', description: err.message, variant: 'destructive' })
     }
   }
 
-  // COMENTÁRIOS
+  // -----------------------------
+  // Comentários
+  // -----------------------------
+  const currentPhotoId = photos[lightboxIndex]?.id
+
   const fetchComments = async (photoId: number) => {
     try {
       const res = await fetch(`${API_URL}/photos/${photoId}/comments`)
       if (!res.ok) throw new Error('Erro ao buscar comentários')
       setComments(await res.json())
-    } catch (err: any) {
+    } catch {
       setComments([])
     }
   }
 
   const addComment = async () => {
-    if (!selectedImage || !newComment.trim()) return
+    if (!currentPhotoId || !newComment.trim()) return
     try {
-      const res = await fetch(`${API_URL}/photos/${selectedImage.id}/comments`, {
+      const res = await fetch(`${API_URL}/photos/${currentPhotoId}/comments`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ content: newComment })
+        body: JSON.stringify({ content: newComment }),
       })
       if (!res.ok) throw new Error('Erro ao comentar')
       setNewComment('')
-      fetchComments(selectedImage.id)
+      fetchComments(currentPhotoId)
     } catch (err: any) {
       toast({ title: 'Erro', description: err.message, variant: 'destructive' })
     }
   }
 
   const deleteComment = async (commentId: number) => {
-    if (!selectedImage) return
+    if (!currentPhotoId) return
     try {
-      const res = await fetch(`${API_URL}/photos/${selectedImage.id}/comments/${commentId}`, { method: 'DELETE' })
+      const res = await fetch(`${API_URL}/photos/${currentPhotoId}/comments/${commentId}`, { method: 'DELETE' })
       if (!res.ok) throw new Error('Erro ao excluir comentário')
-      fetchComments(selectedImage.id)
+      fetchComments(currentPhotoId)
     } catch (err: any) {
       toast({ title: 'Erro', description: err.message, variant: 'destructive' })
     }
   }
 
+  // -----------------------------
+  // Abertura do Lightbox
+  // -----------------------------
+  const openLightboxFor = (photo: Photo) => {
+    const idx = photos.findIndex(p => p.id === photo.id)
+    const nextIndex = idx >= 0 ? idx : 0
+    setLightboxIndex(nextIndex)
+    setLightboxOpen(true)
+    fetchComments(photos[nextIndex].id)
+  }
+
+  const goNext = () => {
+    setLightboxIndex(prev => {
+      const next = (prev + 1) % photos.length
+      fetchComments(photos[next].id)
+      return next
+    })
+  }
+
+  const goPrev = () => {
+    setLightboxIndex(prev => {
+      const next = (prev - 1 + photos.length) % photos.length
+      fetchComments(photos[next].id)
+      return next
+    })
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-100 via-pink-50 to-violet-100 p-4 overflow-auto">
       <AlbumMainHeader />
-  
+
+      {/* Cabeçalho */}
       <div className="flex justify-between items-center mb-6 max-w-6xl mx-auto">
         <h1 className="text-2xl font-bold">Fotos</h1>
         <Button asChild variant="outline">
           <Link to="/albums">Álbuns</Link>
         </Button>
       </div>
-  
+
       {/* Barra de busca */}
       <div className="max-w-6xl mx-auto mb-6">
         <input
@@ -161,39 +213,49 @@ export default function Index() {
           className="border p-2 rounded w-full"
         />
       </div>
-  
+
+      {/* Uploader */}
       <PhotoUploader
         uploadingFiles={uploadingFiles}
         setUploadingFiles={setUploadingFiles}
         startUpload={startUpload}
         handleFileInput={handleFileInput}
+        fileInputRef={fileInputRef}
       />
-  
+
+      {/* Grid */}
       {photos.length > 0 ? (
         <PhotoGrid
           photos={photos}
-          onPhotoClick={(photo: any) => {
-            const idx = photos.findIndex(p => p.id === photo.id)
-            setLightboxIndex(idx >= 0 ? idx : 0)
-            setLightboxOpen(true)
-          }}
+          onPhotoClick={openLightboxFor}
           onDeletePhoto={deletePhoto}
         />
       ) : (
         <div className="text-center text-gray-500 mt-16">
           <p className="mb-4 text-xl">Nenhuma foto encontrada 😔</p>
-          <img src="/koala-animated.gif" alt="koala triste" className="mx-auto w-36 h-36 opacity-70" />
+          <img
+            src="/koala-animated.gif"
+            alt="koala triste"
+            className="mx-auto w-36 h-36 opacity-70"
+          />
         </div>
       )}
-  
+
+      {/* Lightbox fofinho com descrição + comentários */}
       <Lightbox
         photos={photos}
         index={lightboxIndex}
         open={lightboxOpen}
         onClose={() => setLightboxOpen(false)}
-        onNext={() => setLightboxIndex((prev) => (prev + 1) % photos.length)}
-        onPrev={() => setLightboxIndex((prev) => (prev - 1 + photos.length) % photos.length)}
+        onNext={goNext}
+        onPrev={goPrev}
         onDelete={(idx) => deletePhoto(photos[idx].id)}
+        // comentários
+        comments={comments}
+        newComment={newComment}
+        setNewComment={setNewComment}
+        onAddComment={addComment}
+        onDeleteComment={deleteComment}
       />
     </div>
   )
