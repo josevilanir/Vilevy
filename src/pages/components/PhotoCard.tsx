@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Trash2 } from "lucide-react";
+import { Trash2, Edit, Download } from "lucide-react";
 
 interface PhotoCardProps {
   photo: {
@@ -13,9 +13,18 @@ interface PhotoCardProps {
   API_URL: string;
   onClick: () => void;
   onDelete?: () => void;
+  onEdit?: () => void;      // editar título/descrição
+  onDownload?: () => void;  // baixar imagem
 }
 
-export default function PhotoCard({ photo, API_URL, onClick, onDelete }: PhotoCardProps) {
+export default function PhotoCard({
+  photo,
+  API_URL,
+  onClick,
+  onDelete,
+  onEdit,
+  onDownload,
+}: PhotoCardProps) {
   const [hovered, setHovered] = useState(false);
 
   return (
@@ -39,22 +48,52 @@ export default function PhotoCard({ photo, API_URL, onClick, onDelete }: PhotoCa
         />
       </div>
 
-      {/* Botão de deletar — só aparece no hover */}
-      {hovered && onDelete && (
-        <Button
-          variant="destructive"
-          size="icon"
-          className="absolute top-2 right-2 z-10"
-          onClick={(e) => {
-            e.stopPropagation();
-            onDelete();
-          }}
-        >
-          <Trash2 className="w-4 h-4" />
-        </Button>
+      {/* Ações flutuantes no hover */}
+      {hovered && (
+        <div className="absolute top-2 right-2 z-10 flex flex-col gap-2">
+          {onDelete && (
+            <Button
+              variant="destructive"
+              size="icon"
+              onClick={(e) => {
+                e.stopPropagation();
+                onDelete();
+              }}
+              title="Excluir"
+            >
+              <Trash2 className="w-4 h-4" />
+            </Button>
+          )}
+          {onEdit && (
+            <Button
+              variant="secondary"
+              size="icon"
+              onClick={(e) => {
+                e.stopPropagation();
+                onEdit();
+              }}
+              title="Editar título/descrição"
+            >
+              <Edit className="w-4 h-4" />
+            </Button>
+          )}
+          {onDownload && (
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={(e) => {
+                e.stopPropagation();
+                onDownload();
+              }}
+              title="Baixar"
+            >
+              <Download className="w-4 h-4" />
+            </Button>
+          )}
+        </div>
       )}
 
-      {/* Nome da foto */}
+      {/* Nome/descrição */}
       <div className="p-2" onClick={onClick}>
         <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 truncate">
           {photo.name}

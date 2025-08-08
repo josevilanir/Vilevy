@@ -7,6 +7,7 @@ import AlbumMainHeader from './components/AlbumMainHeader'
 import PhotoUploader from './components/PhotoUploader'
 import PhotoGrid from './components/PhotoGrid'
 import Lightbox from './components/Lightbox'
+import PhotoEditModal from './components/PhotoEditModal'
 
 const API_URL = import.meta.env.VITE_API_URL
 
@@ -36,6 +37,10 @@ export default function Index() {
   // Lightbox
   const [lightboxOpen, setLightboxOpen] = useState(false)
   const [lightboxIndex, setLightboxIndex] = useState(0)
+
+  // Edição
+  const [editOpen, setEditOpen] = useState(false)
+  const [editPhoto, setEditPhoto] = useState<Photo | null>(null)
 
   const { toast } = useToast()
 
@@ -112,7 +117,6 @@ export default function Index() {
       if (!res.ok) throw new Error('Erro ao excluir foto')
       toast({ title: 'Sucesso', description: 'Foto excluída!' })
       fetchPhotos()
-      // Se a foto deletada estava aberta no lightbox, feche/ajuste
       if (lightboxOpen) {
         const idx = photos.findIndex(p => p.id === photoId)
         if (idx === lightboxIndex) setLightboxOpen(false)
@@ -165,7 +169,7 @@ export default function Index() {
   }
 
   // -----------------------------
-  // Abertura do Lightbox
+  // Lightbox
   // -----------------------------
   const openLightboxFor = (photo: Photo) => {
     const idx = photos.findIndex(p => p.id === photo.id)
@@ -189,6 +193,41 @@ export default function Index() {
       fetchComments(photos[next].id)
       return next
     })
+  }
+
+  // -----------------------------
+  // Editar (título/descrição) & Download
+  // -----------------------------
+  const onEditPhoto = (p: Photo) => {
+    setEditPhoto(p)
+    setEditOpen(true)
+  }
+
+  const onEditSave = async (values: { name: string; description: string }) => {
+    if (!editPhoto) return
+    try {
+      const res = await fetch(`${API_URL}/photos/${editPhoto.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(values),
+      })
+      if (!res.ok) throw new Error('Erro ao salvar alterações')
+      toast({ title: 'Sucesso', description: 'Foto atualizada!' })
+      setEditOpen(false)
+      setEditPhoto(null)
+      await fetchPhotos(search)
+      if (lightboxOpen) {
+        // Atualizar comentários/estado se ainda estiver no mesmo índice
+        fetchComments(photos[lightboxIndex]?.id)
+      }
+    } catch (err: any) {
+      toast({ title: 'Erro', description: err.message, variant: 'destructive' })
+    }
+  }
+
+  const onDownloadPhoto = (p: Photo) => {
+    const url = `${API_URL}/uploads/${p.file_path}`
+    window.open(url, '_blank')
   }
 
   return (
@@ -229,6 +268,8 @@ export default function Index() {
           photos={photos}
           onPhotoClick={openLightboxFor}
           onDeletePhoto={deletePhoto}
+          onEditPhoto={onEditPhoto}
+          onDownloadPhoto={onDownloadPhoto}
         />
       ) : (
         <div className="text-center text-gray-500 mt-16">
@@ -241,7 +282,7 @@ export default function Index() {
         </div>
       )}
 
-      {/* Lightbox fofinho com descrição + comentários */}
+      {/* Lightbox fofinho */}
       <Lightbox
         photos={photos}
         index={lightboxIndex}
@@ -256,6 +297,17 @@ export default function Index() {
         setNewComment={setNewComment}
         onAddComment={addComment}
         onDeleteComment={deleteComment}
+        // opcional: também dá pra passar onEdit/onDownload aqui se quiser no header direito
+        // onEdit={(idx) => onEditPhoto(photos[idx])}
+        // onDownload={(idx) => onDownloadPhoto(photos[idx])}
+      />
+
+      {/* Modal de edição */}
+      <PhotoEditModal
+        open={editOpen}
+        photo={editPhoto}
+        onClose={() => { setEditOpen(false); setEditPhoto(null) }}
+        onSave={onEditSave}
       />
     </div>
   )
