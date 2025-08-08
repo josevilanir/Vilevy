@@ -1,7 +1,7 @@
 import { useEffect, useCallback } from "react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, ChevronRight, X, Trash2, Download, Edit } from "lucide-react";
+import { ChevronLeft, ChevronRight, X, Download, Edit } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 interface Photo { id: number; file_path: string; name: string; upload_date?: string; description?: string; }
@@ -13,11 +13,9 @@ export interface LightboxProps {
   onClose: () => void;
   onNext: () => void;
   onPrev: () => void;
-  // ações
-  onDelete?: (idx: number) => void;
   onEdit?: (idx: number) => void;
   onDownload?: (idx: number) => void;
-  // comentários (novo)
+  onDelete?: (idx: number) => void; // ainda disponível, mas não exibimos botão no topo da foto
   comments?: { id: number; content: string }[];
   newComment?: string;
   setNewComment?: (v: string) => void;
@@ -32,9 +30,9 @@ export default function Lightbox({
   onClose,
   onNext,
   onPrev,
-  onDelete,
   onEdit,
   onDownload,
+  // onDelete,  // não usamos mais aqui visualmente
   comments = [],
   newComment = "",
   setNewComment,
@@ -44,14 +42,11 @@ export default function Lightbox({
   const API_URL = import.meta.env.VITE_API_URL;
   const photo = photos[index];
 
-  const handleKey = useCallback(
-    (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
-      if (e.key === "ArrowRight") onNext();
-      if (e.key === "ArrowLeft") onPrev();
-    },
-    [onClose, onNext, onPrev]
-  );
+  const handleKey = useCallback((e: KeyboardEvent) => {
+    if (e.key === "Escape") onClose();
+    if (e.key === "ArrowRight") onNext();
+    if (e.key === "ArrowLeft") onPrev();
+  }, [onClose, onNext, onPrev]);
 
   useEffect(() => {
     if (!open) return;
@@ -63,15 +58,8 @@ export default function Lightbox({
 
   return (
     <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
-      <DialogContent
-        className="
-          max-w-[96vw] w-[96vw] md:w-[88vw] lg:w-[80vw]
-          max-h-[94vh] p-0 border-none bg-transparent
-        "
-      >
-        {/* Overlay com degradê suave */}
+      <DialogContent className="max-w-[96vw] w-[96vw] md:w-[88vw] lg:w-[80vw] max-h-[94vh] p-0 border-none bg-transparent">
         <div className="relative w-full h-full">
-          {/* Painel central fofinho */}
           <AnimatePresence mode="wait">
             <motion.div
               key={photo.id}
@@ -80,20 +68,21 @@ export default function Lightbox({
               exit={{ opacity: 0, y: 12, scale: 0.98 }}
               transition={{ duration: 0.25, ease: "easeOut" }}
               className="
-                mx-auto bg-gradient-to-br from-purple-50 via-pink-50 to-violet-50
+                mx-auto rounded-2xl shadow-xl border-2
+                bg-gradient-to-br from-purple-50 via-pink-50 to-violet-50
                 dark:from-gray-900 dark:via-gray-900 dark:to-gray-900
-                rounded-2xl shadow-xl border-2 border-purple-200/60
-                overflow-hidden grid grid-cols-1 lg:grid-cols-2
-                max-h-[90vh]
+                border-purple-200/60 overflow-hidden
+                grid grid-cols-1 lg:grid-cols-2 max-h-[90vh]
               "
             >
-              {/* Coluna da imagem */}
-              <div className="relative flex items-center justify-center bg-white dark:bg-gray-950">
+              {/* Coluna da imagem — sem fundo branco e sem ação no topo */}
+              <div className="relative flex items-center justify-center bg-transparent">
                 <button
-                  className="absolute left-2 top-1/2 -translate-y-1/2 p-2 rounded-full bg-white/80 dark:bg-gray-800/80 hover:bg-white shadow"
-                  onClick={onPrev} title="Anterior"
+                  className="absolute left-2 top-1/2 -translate-y-1/2 p-2 rounded-full hover:bg-white/10 dark:hover:bg-white/10"
+                  onClick={onPrev}
+                  title="Anterior"
                 >
-                  <ChevronLeft className="w-5 h-5" />
+                  <ChevronLeft className="w-6 h-6 text-white/80" />
                 </button>
 
                 <img
@@ -104,43 +93,19 @@ export default function Lightbox({
                 />
 
                 <button
-                  className="absolute right-2 top-1/2 -translate-y-1/2 p-2 rounded-full bg-white/80 dark:bg-gray-800/80 hover:bg-white shadow"
-                  onClick={onNext} title="Próxima"
+                  className="absolute right-2 top-1/2 -translate-y-1/2 p-2 rounded-full hover:bg-white/10 dark:hover:bg-white/10"
+                  onClick={onNext}
+                  title="Próxima"
                 >
-                  <ChevronRight className="w-5 h-5" />
+                  <ChevronRight className="w-6 h-6 text-white/80" />
                 </button>
-
-                {/* Fechar + ações no topo direito */}
-                <div className="absolute right-2 top-2 flex items-center gap-1">
-                  {onDownload && (
-                    <Button variant="ghost" size="icon" onClick={() => onDownload(index)} title="Baixar"
-                      className="bg-white/70 hover:bg-white text-gray-700 dark:bg-gray-800/70 dark:text-gray-200">
-                      <Download className="w-4 h-4" />
-                    </Button>
-                  )}
-                  {onEdit && (
-                    <Button variant="ghost" size="icon" onClick={() => onEdit(index)} title="Editar"
-                      className="bg-white/70 hover:bg-white text-blue-600 dark:bg-gray-800/70">
-                      <Edit className="w-4 h-4" />
-                    </Button>
-                  )}
-                  {onDelete && (
-                    <Button variant="ghost" size="icon" onClick={() => onDelete(index)} title="Excluir"
-                      className="bg-white/70 hover:bg-white text-red-600 dark:bg-gray-800/70">
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
-                  )}
-                  <Button variant="ghost" size="icon" onClick={onClose} title="Fechar"
-                    className="bg-white/70 hover:bg-white text-gray-700 dark:bg-gray-800/70">
-                    <X className="w-4 h-4" />
-                  </Button>
-                </div>
               </div>
 
-              {/* Coluna de detalhes (“o 2º print”) */}
+              {/* Coluna de detalhes */}
               <div className="flex flex-col max-h-[90vh]">
-                <div className="p-4 md:p-6 overflow-auto space-y-4">
-                  <div>
+                {/* Header da coluna direita — aqui fica o ÚNICO botão de fechar */}
+                <div className="flex items-center justify-between px-4 md:px-6 pt-4">
+                  <div className="min-w-0">
                     <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 truncate">
                       {photo.name}
                     </h2>
@@ -148,8 +113,28 @@ export default function Lightbox({
                       📅 {photo.upload_date || "--/--/----"}
                     </p>
                   </div>
+                  <div className="flex items-center gap-1">
+                    {onDownload && (
+                      <Button variant="ghost" size="icon" onClick={() => onDownload(index)} title="Baixar"
+                        className="text-gray-700 hover:bg-white/60 dark:text-gray-200 dark:hover:bg-gray-800/60">
+                        <Download className="w-4 h-4" />
+                      </Button>
+                    )}
+                    {onEdit && (
+                      <Button variant="ghost" size="icon" onClick={() => onEdit(index)} title="Editar"
+                        className="text-blue-600 hover:bg-white/60 dark:text-blue-400 dark:hover:bg-gray-800/60">
+                        <Edit className="w-4 h-4" />
+                      </Button>
+                    )}
+                    <Button variant="ghost" size="icon" onClick={onClose} title="Fechar"
+                      className="text-gray-700 hover:bg-white/60 dark:text-gray-200 dark:hover:bg-gray-800/60">
+                      <X className="w-4 h-4" />
+                    </Button>
+                  </div>
+                </div>
 
-                  {/* Description */}
+                {/* Conteúdo com descrição e comentários */}
+                <div className="p-4 md:p-6 overflow-auto space-y-4">
                   <div>
                     <h3 className="font-semibold text-gray-800 dark:text-gray-200 mb-2">Description 🌿</h3>
                     <div className="text-sm text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border-2 border-purple-200/60 dark:border-gray-700 rounded-lg p-3">
@@ -157,18 +142,17 @@ export default function Lightbox({
                     </div>
                   </div>
 
-                  {/* Comments */}
                   <div>
                     <h3 className="font-semibold text-gray-800 dark:text-gray-200 mb-2">Comments 💬</h3>
                     <div className="space-y-2">
                       {comments?.length ? comments.map((c) => (
-                        <div key={c.id}
-                          className="flex items-start justify-between gap-3 bg-white dark:bg-gray-800 border rounded-lg p-2">
+                        <div key={c.id} className="flex items-start justify-between gap-3 bg-white dark:bg-gray-800 border rounded-lg p-2">
                           <p className="text-sm text-gray-800 dark:text-gray-200">{c.content}</p>
                           {onDeleteComment && (
                             <Button variant="ghost" size="icon" onClick={() => onDeleteComment(c.id)}
                               className="text-red-600 hover:bg-red-50 dark:hover:bg-gray-700">
-                              <Trash2 className="w-4 h-4" />
+                              {/* lixeira já fica do lado do comentário */}
+                              ✖
                             </Button>
                           )}
                         </div>
@@ -177,7 +161,6 @@ export default function Lightbox({
                       )}
                     </div>
 
-                    {/* Novo comentário */}
                     {setNewComment && onAddComment && (
                       <div className="mt-3">
                         <textarea
@@ -186,8 +169,7 @@ export default function Lightbox({
                           onChange={(e) => setNewComment(e.target.value)}
                           className="w-full min-h-[70px] rounded-lg border-2 border-purple-200/60 dark:border-gray-700 bg-white dark:bg-gray-800 p-2 text-sm"
                         />
-                        <Button className="mt-2 w-full bg-purple-500 hover:bg-purple-600 text-white rounded-full"
-                          onClick={onAddComment}>
+                        <Button className="mt-2 w-full bg-purple-500 hover:bg-purple-600 text-white rounded-full" onClick={onAddComment}>
                           Add Comment
                         </Button>
                       </div>
