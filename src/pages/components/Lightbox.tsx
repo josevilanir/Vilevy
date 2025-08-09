@@ -22,7 +22,7 @@ export interface LightboxProps {
   onPrev: () => void;
   onEdit?: (idx: number) => void;
   onDownload?: (idx: number) => void;
-  onDelete?: (idx: number) => void; // disponível, mas não exibimos botão sobre a foto
+  onDelete?: (idx: number) => void;
   comments?: { id: number; content: string }[];
   newComment?: string;
   setNewComment?: (v: string) => void;
@@ -48,14 +48,11 @@ export default function Lightbox({
   const API_URL = import.meta.env.VITE_API_URL;
   const photo = photos[index];
 
-  const handleKey = useCallback(
-    (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
-      if (e.key === "ArrowRight") onNext();
-      if (e.key === "ArrowLeft") onPrev();
-    },
-    [onClose, onNext, onPrev]
-  );
+  const handleKey = useCallback((e: KeyboardEvent) => {
+    if (e.key === "Escape") onClose();
+    if (e.key === "ArrowRight") onNext();
+    if (e.key === "ArrowLeft") onPrev();
+  }, [onClose, onNext, onPrev]);
 
   useEffect(() => {
     if (!open) return;
@@ -69,13 +66,17 @@ export default function Lightbox({
     <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
       <DialogContent
         className="
-          w-[96vw] md:w-[92vw] lg:w-[94vw] xl:w-[90vw]
-          lg:h-[92vh]
-          max-h-[100svh]
+          /* mobile/tablet responsivo */
+          w-[98vw] sm:w-[96vw] md:w-[94vw]
+          /* desktop conforme métricas combinadas */
+          lg:w-[2000px] xl:w-[1000px] 2xl:w-[1400px]
+          /* remove max-width padrão do shadcn em telas grandes */
+          sm:max-w-[96vw] lg:max-w-none
+          /* altura */
+          lg:h-[94vh] max-h-[100svh]
           p-0 border-none bg-transparent
         "
       >
-        {/* mobile/tablet: rola; desktop: usa altura fixa do Dialog */}
         <div className="relative w-full h-[100svh] lg:h-auto overflow-y-auto lg:overflow-hidden">
           <AnimatePresence mode="wait">
             <motion.div
@@ -83,18 +84,19 @@ export default function Lightbox({
               initial={{ opacity: 0, y: 12, scale: 0.98 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: 12, scale: 0.98 }}
-              transition={{ duration: 0.25, ease: "easeOut" }}
+              transition={{ duration: 0.25, ease: 'easeOut' }}
               className="
                 mx-auto rounded-2xl shadow-xl border-2
                 bg-gradient-to-br from-purple-50 via-pink-50 to-violet-50
                 dark:from-gray-900 dark:via-gray-900 dark:to-gray-900
                 border-purple-200/60 overflow-hidden
                 grid grid-cols-1 lg:grid-cols-2
+                lg:[grid-template-columns:64%_36%]
                 lg:max-h-[90vh]
               "
             >
-              {/* Imagem */}
-              <div className="relative flex items-center justify-center bg-transparent lg:min-h-[80vh]">
+              {/* Coluna da imagem — centralizada, sem zoom forçado */}
+              <div className="relative flex items-center justify-center bg-transparent min-h-[60vh] lg:min-h-[84vh]">
                 {/* Anterior */}
                 <button
                   className="absolute left-3 top-1/2 -translate-y-1/2 p-2 rounded-full
@@ -109,9 +111,10 @@ export default function Lightbox({
                   src={`${API_URL}/uploads/${photo.file_path}`}
                   alt={photo.name}
                   className="
-                    w-auto object-contain
+                    object-contain
+                    w-auto h-auto
+                    max-w-full
                     max-h-[70svh] lg:max-h-[90vh]
-                    mx-auto
                   "
                   draggable={false}
                 />
@@ -127,16 +130,16 @@ export default function Lightbox({
                 </button>
               </div>
 
-              {/* Detalhes */}
+              {/* Coluna de detalhes */}
               <div className="flex flex-col">
                 {/* Header direita — único botão de fechar */}
-                <div className="flex items-center justify-between px-4 md:px-6 pt-4">
+                <div className="flex items-center justify-between px-4 sm:px-6 pt-4">
                   <div className="min-w-0">
                     <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 truncate">
                       {photo.name}
                     </h2>
                     <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                      📅 {photo.upload_date || "--/--/----"}
+                      📅 {photo.upload_date || '--/--/----'}
                     </p>
                   </div>
                   <div className="flex items-center gap-1">
@@ -175,32 +178,23 @@ export default function Lightbox({
                 </div>
 
                 {/* Conteúdo rolável */}
-                <div className="p-4 md:p-6 space-y-4">
+                <div className="p-4 sm:p-6 space-y-4">
                   {/* Description */}
                   <div>
-                    <h3 className="font-semibold text-gray-800 dark:text-gray-200 mb-2">
-                      Description 🌿
-                    </h3>
+                    <h3 className="font-semibold text-gray-800 dark:text-gray-200 mb-2">Description 🌿</h3>
                     <div className="text-sm text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border-2 border-purple-200/60 dark:border-gray-700 rounded-lg p-3">
-                      {photo.description || "Sem descrição."}
+                      {photo.description || 'Sem descrição.'}
                     </div>
                   </div>
 
                   {/* Comments */}
                   <div>
-                    <h3 className="font-semibold text-gray-800 dark:text-gray-200 mb-2">
-                      Comments 💬
-                    </h3>
+                    <h3 className="font-semibold text-gray-800 dark:text-gray-200 mb-2">Comments 💬</h3>
                     <div className="space-y-2">
                       {comments?.length ? (
                         comments.map((c) => (
-                          <div
-                            key={c.id}
-                            className="flex items-start justify-between gap-3 bg-white dark:bg-gray-800 border rounded-lg p-2"
-                          >
-                            <p className="text-sm text-gray-800 dark:text-gray-200">
-                              {c.content}
-                            </p>
+                          <div key={c.id} className="flex items-start justify-between gap-3 bg-white dark:bg-gray-800 border rounded-lg p-2">
+                            <p className="text-sm text-gray-800 dark:text-gray-200">{c.content}</p>
                             {onDeleteComment && (
                               <Button
                                 variant="ghost"
@@ -214,9 +208,7 @@ export default function Lightbox({
                           </div>
                         ))
                       ) : (
-                        <p className="text-sm text-gray-500 dark:text-gray-400">
-                          Sem comentários…
-                        </p>
+                        <p className="text-sm text-gray-500 dark:text-gray-400">Sem comentários…</p>
                       )}
                     </div>
 
@@ -228,10 +220,7 @@ export default function Lightbox({
                           onChange={(e) => setNewComment(e.target.value)}
                           className="w-full min-h-[100px] rounded-lg border-2 border-purple-200/60 dark:border-gray-700 bg-white dark:bg-gray-800 p-2 text-sm"
                         />
-                        <Button
-                          className="mt-2 w-full bg-purple-500 hover:bg-purple-600 text-white rounded-full"
-                          onClick={onAddComment}
-                        >
+                        <Button className="mt-2 w-full bg-purple-500 hover:bg-purple-600 text-white rounded-full" onClick={onAddComment}>
                           Add Comment
                         </Button>
                       </div>
