@@ -95,4 +95,27 @@ router.delete('/:id', async (req, res) => {
   }
 });
 
+// atualizar dados de uma foto
+router.put('/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { name, description } = req.body;
+
+    const { rows } = await pool.query(
+      `UPDATE photos
+       SET name = $1, description = $2
+       WHERE id = $3
+       RETURNING *`,
+      [name, description, id]
+    );
+
+    if (rows.length === 0) return res.sendStatus(404);
+
+    res.json(rows[0]);
+  } catch (err) {
+    console.error(err);
+    res.sendStatus(500);
+  }
+});
+
 export default router;
