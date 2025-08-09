@@ -69,7 +69,7 @@ export default function Lightbox({
     <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
       <DialogContent
         className="
-          w-[96vw] md:w-[92vw] lg:w-[88vw] xl:w-[80vw]
+          w-[96vw] md:w-[92vw] lg:w-[94vw] xl:w-[90vw]
           lg:h-[92vh]
           max-h-[100svh]
           p-0 border-none bg-transparent
