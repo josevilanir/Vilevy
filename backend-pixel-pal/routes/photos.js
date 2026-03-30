@@ -45,8 +45,8 @@ router.post('/', upload.single('photo'), async (req, res) => {
     const baseName = path.basename(req.file.originalname, ext);
     const fileName = `${baseName}-${Date.now()}${ext}`;
 
-    // Faz upload para o Cloudflare R2
-    await uploadToR2(fileName, req.file.buffer, req.file.mimetype);
+    // Faz upload para o Cloudflare R2 dentro da pasta uploads/
+    await uploadToR2(`uploads/${fileName}`, req.file.buffer, req.file.mimetype);
 
     // Salva só o nome do arquivo no banco
     const { rows } = await pool.query(
@@ -79,8 +79,8 @@ router.delete('/:id', async (req, res) => {
     await pool.query('DELETE FROM photos WHERE id = $1', [id]);
 
     // Depois tenta deletar do R2 (não falha o request se o R2 der erro)
-    deleteFromR2(fileName).catch((err) =>
-      console.warn(`Aviso: falha ao deletar ${fileName} do R2:`, err.message)
+    deleteFromR2(`uploads/${fileName}`).catch((err) =>
+      console.warn(`Aviso: falha ao deletar uploads/${fileName} do R2:`, err.message)
     );
 
     res.sendStatus(200);
