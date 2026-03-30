@@ -9,7 +9,7 @@ import PhotoGrid from './components/PhotoGrid'
 import Lightbox from './components/Lightbox'
 import PhotoEditModal from './components/PhotoEditModal'
 
-const API_URL = import.meta.env.VITE_API_URL
+import { API_URL } from '@/config'
 
 type Photo = {
   id: number

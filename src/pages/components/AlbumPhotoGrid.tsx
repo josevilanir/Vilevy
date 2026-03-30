@@ -1,4 +1,5 @@
 import { Dialog, DialogTrigger, DialogContent, DialogClose } from '@/components/ui/dialog'
+import { API_URL } from '@/config'
 
 interface Photo {
   id: number
@@ -17,7 +18,7 @@ export default function AlbumPhotoGrid({ photos }: { photos: Photo[] }) {
             {/* Área da imagem */}
             <div className="w-full h-48 flex items-center justify-center bg-gray-100 overflow-hidden">
               <img
-                src={`${import.meta.env.VITE_API_URL}/uploads/${photo.file_path}`}
+                src={`${API_URL}/uploads/${photo.file_path}`}
                 alt={photo.name}
                 className="w-full h-full object-cover"
               />
@@ -31,7 +32,7 @@ export default function AlbumPhotoGrid({ photos }: { photos: Photo[] }) {
         <DialogContent className="p-0 bg-transparent flex justify-center items-center">
           <DialogClose className="absolute top-4 right-4 text-white text-2xl">×</DialogClose>
           <img
-            src={`${import.meta.env.VITE_API_URL}/uploads/${photo.file_path}`}
+            src={`${API_URL}/uploads/${photo.file_path}`}
             alt={photo.name}
             className="max-w-full max-h-[90vh] rounded-lg shadow-xl"
           />

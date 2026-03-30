@@ -1,4 +1,5 @@
 import PhotoCard from './PhotoCard'
+import { API_URL } from '@/config'
 
 type Photo = {
   id: number
@@ -20,7 +21,6 @@ export default function PhotoGrid({
   onEditPhoto?: (photo: Photo) => void
   onDownloadPhoto?: (photo: Photo) => void
 }) {
-  const API_URL = import.meta.env.VITE_API_URL as string
 
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">

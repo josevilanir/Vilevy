@@ -1,5 +1,6 @@
 // src/pages/components/Lightbox.tsx
 import { useEffect, useCallback } from "react";
+import { API_URL } from "@/config";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight, X, Download, Edit } from "lucide-react";
@@ -45,7 +46,6 @@ export default function Lightbox({
   onAddComment,
   onDeleteComment,
 }: LightboxProps) {
-  const API_URL = import.meta.env.VITE_API_URL;
   const photo = photos[index];
 
   const handleKey = useCallback((e: KeyboardEvent) => {
