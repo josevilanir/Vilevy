@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Trash2 } from "lucide-react";
 
-import { API_URL } from '@/config'
+import { STORAGE_URL } from '@/config'
 
 export default function AlbumCard({
   album,
@@ -17,7 +17,7 @@ export default function AlbumCard({
         {/* Thumbnail/capa */}
         {album.cover_photo_file_path ? (
             <img
-            src={`${API_URL}/uploads/${album.cover_photo_file_path}`}
+            src={`${STORAGE_URL}/${album.cover_photo_file_path}`}
             alt={`Capa do álbum ${album.name}`}
             className="rounded-xl border-4 border-purple-200 mb-2"
             style={{

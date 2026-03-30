@@ -11,7 +11,7 @@ import { fetchAlbum, fetchAlbumPhotos, type Album, type PaginatedPhotos } from '
 import AlbumHeader from './components/AlbumHeader'
 import AlbumPagination from './components/AlbumPagination'
 import { Button } from '@/components/ui/button'
-import { API_URL } from '@/config'
+import { API_URL, STORAGE_URL } from '@/config'
 import PhotoDialog from "./components/photoDialog";
 
 export default function AlbumDetails() {
@@ -97,7 +97,7 @@ export default function AlbumDetails() {
         {selectedPhoto && (
           <>
             <img
-              src={`${API_URL}/uploads/${selectedPhoto.file_path}`}
+              src={`${STORAGE_URL}/${selectedPhoto.file_path}`}
               alt={selectedPhoto.name}
               className="rounded-xl border-4 border-purple-200 mb-2"
               style={{ maxWidth: 420, maxHeight: 420, background: "#f5ecff" }}
@@ -159,7 +159,7 @@ export default function AlbumDetails() {
               {/* Área da imagem: ocupa metade do card e nunca deforma */}
               <div className="w-full h-1/2 flex items-center justify-center bg-purple-50 overflow-hidden">
                 <img
-                  src={`${API_URL}/uploads/${photo.file_path}`}
+                  src={`${STORAGE_URL}/${photo.file_path}`}
                   alt={photo.name}
                   className="w-full h-full object-cover"
                   style={{ aspectRatio: '4/5', maxHeight: "100%" }}

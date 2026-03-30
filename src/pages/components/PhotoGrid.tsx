@@ -1,5 +1,4 @@
 import PhotoCard from './PhotoCard'
-import { API_URL } from '@/config'
 
 type Photo = {
   id: number
@@ -28,7 +27,6 @@ export default function PhotoGrid({
         <PhotoCard
           key={photo.id ?? `${photo.file_path}-${i}`}
           photo={photo}
-          API_URL={API_URL}
           onClick={() => onPhotoClick(photo)}
           onDelete={() => onDeletePhoto(photo.id)}
           onEdit={onEditPhoto ? () => onEditPhoto(photo) : undefined}

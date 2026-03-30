@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Trash2, Edit, Download } from "lucide-react";
+import { STORAGE_URL } from "@/config";
 
 interface PhotoCardProps {
   photo: {
@@ -10,16 +11,14 @@ interface PhotoCardProps {
     name: string;
     description?: string;
   };
-  API_URL: string;
   onClick: () => void;
   onDelete?: () => void;
-  onEdit?: () => void;      // editar título/descrição
-  onDownload?: () => void;  // baixar imagem
+  onEdit?: () => void;
+  onDownload?: () => void;
 }
 
 export default function PhotoCard({
   photo,
-  API_URL,
   onClick,
   onDelete,
   onEdit,
@@ -42,7 +41,7 @@ export default function PhotoCard({
       {/* Imagem */}
       <div className="aspect-square w-full h-full flex items-center justify-center overflow-hidden" onClick={onClick}>
         <img
-          src={`${API_URL}/uploads/${photo.file_path}`}
+          src={`${STORAGE_URL}/${photo.file_path}`}
           alt={photo.name}
           className="object-cover w-full h-full transform hover:scale-105 transition-transform duration-300"
         />

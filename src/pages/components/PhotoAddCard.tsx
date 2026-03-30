@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { API_URL } from '@/config';
+import { STORAGE_URL } from '@/config';
 
 export default function PhotoAddCard({
   photo,
@@ -11,7 +11,7 @@ export default function PhotoAddCard({
   return (
     <div className="album-card">
       <img
-        src={`${API_URL}/uploads/${photo.file_path}`}
+        src={`${STORAGE_URL}/${photo.file_path}`}
         alt={photo.name}
         className="album-card-img"
       />

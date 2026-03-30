@@ -9,7 +9,7 @@ import PhotoGrid from './components/PhotoGrid'
 import Lightbox from './components/Lightbox'
 import PhotoEditModal from './components/PhotoEditModal'
 
-import { API_URL } from '@/config'
+import { API_URL, STORAGE_URL } from '@/config'
 
 type Photo = {
   id: number
@@ -226,7 +226,7 @@ export default function Index() {
   }
 
   const onDownloadPhoto = (p: Photo) => {
-    const url = `${API_URL}/uploads/${p.file_path}`
+    const url = `${STORAGE_URL}/${p.file_path}`
     window.open(url, '_blank')
   }
 

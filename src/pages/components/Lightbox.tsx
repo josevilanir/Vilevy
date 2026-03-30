@@ -1,6 +1,6 @@
 // src/pages/components/Lightbox.tsx
 import { useEffect, useCallback } from "react";
-import { API_URL } from "@/config";
+import { STORAGE_URL } from "@/config";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight, X, Download, Edit } from "lucide-react";
@@ -108,7 +108,7 @@ export default function Lightbox({
                 </button>
 
                 <img
-                  src={`${API_URL}/uploads/${photo.file_path}`}
+                  src={`${STORAGE_URL}/${photo.file_path}`}
                   alt={photo.name}
                   className="
                     object-contain

@@ -2,7 +2,7 @@ import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { ArrowLeft, ArrowRight, X } from "lucide-react";
 import { useEffect, useState } from "react";
 
-import { API_URL } from '@/config'
+import { STORAGE_URL } from '@/config'
 
 export default function PhotoDialog({
   photos,
@@ -54,7 +54,7 @@ export default function PhotoDialog({
           </button>
 
           <img
-            src={`${API_URL}/uploads/${photo.file_path}`}
+            src={`${STORAGE_URL}/${photo.file_path}`}
             alt={photo.name}
             className="rounded-xl border-4 border-purple-200 mx-1"
             style={{ maxWidth: 420, maxHeight: 420, background: "#f5ecff" }}
