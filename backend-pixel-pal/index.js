@@ -11,10 +11,12 @@ const PORT = process.env.PORT || 4000;
 
 const app = express();
 
-// Permite requisições do frontend (configurar FRONTEND_URL em produção)
-app.use(cors({
-  origin: process.env.FRONTEND_URL || '*',
-}));
+// Remove barra final do FRONTEND_URL caso venha com ela (ex: https://app.vercel.app/)
+const frontendOrigin = process.env.FRONTEND_URL
+  ? process.env.FRONTEND_URL.replace(/\/$/, '')
+  : '*';
+
+app.use(cors({ origin: frontendOrigin }));
 app.use(express.json());
 
 // Redirect /uploads/:filename → URL pública do Cloudflare R2
