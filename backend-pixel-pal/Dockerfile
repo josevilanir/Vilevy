@@ -1,29 +1,21 @@
 # backend-pixel-pal/Dockerfile
+# Simplificado: sem sqlite3, sem disco local — tudo vai pro Cloudflare R2
 
-FROM node:20-bullseye AS build
+FROM node:20-alpine
 
 WORKDIR /app
 
-# 1) Copia só package.json e package-lock.json
+# Copia manifests de dependências
 COPY package*.json ./
 
-# 2) Instala dependências do sistema necessárias para sqlite3 + build de addons nativos
-RUN apt-get update && apt-get install -y \
-    python3 \
-    build-essential \
-    pkg-config \
-    libsqlite3-dev \
-  && rm -rf /var/lib/apt/lists/* \
-  && npm install --production
+# Instala apenas dependências de produção
+RUN npm install --production
 
-# 3) Copia o resto do código (sem node_modules do host, graças ao .dockerignore)
+# Copia o código
 COPY . .
 
-# 4) Garante que a pasta de uploads exista (o seu código já faz isso, mas só por segurança)
-RUN mkdir -p uploads
-
-# Expõe a porta que o Express vai ouvir
+# Expõe a porta do Express
 EXPOSE 4000
 
-# 5) Comando de start em exec-form, chamando o index.js
+# Inicia o servidor
 CMD ["node", "index.js"]

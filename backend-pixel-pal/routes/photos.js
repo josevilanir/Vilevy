@@ -2,29 +2,11 @@ import express from 'express';
 import { pool } from '../db.js';
 import multer from 'multer';
 import path from 'path';
-import { fileURLToPath } from 'url';
-import { dirname } from 'path';
-import fs from 'fs';
+import { uploadToR2, deleteFromR2 } from '../storage.js';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
+// Multer com memória: o arquivo fica em req.file.buffer (não grava no disco)
+const upload = multer({ storage: multer.memoryStorage() });
 
-// USE O DISCO PERSISTENTE!
-const UPLOAD_FOLDER = '/data/uploads';
-
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, UPLOAD_FOLDER);
-  },
-  filename: function (req, file, cb) {
-    // Salva a foto com timestamp para evitar conflitos
-    const ext = path.extname(file.originalname);
-    const name = path.basename(file.originalname, ext);
-    cb(null, `${name}-${Date.now()}${ext}`);
-  }
-});
-
-const upload = multer({ storage });
 const router = express.Router();
 
 // lista todas as fotos, agora com busca!
@@ -53,18 +35,25 @@ router.get('/', async (req, res) => {
   }
 });
 
-// upload de nova foto
+// upload de nova foto → vai direto pro Cloudflare R2
 router.post('/', upload.single('photo'), async (req, res) => {
   try {
     const { name, date: taken_date, description } = req.body;
-    const file_path = req.file.filename;
 
+    // Gera nome único para o arquivo
+    const ext = path.extname(req.file.originalname);
+    const baseName = path.basename(req.file.originalname, ext);
+    const fileName = `${baseName}-${Date.now()}${ext}`;
+
+    // Faz upload para o Cloudflare R2
+    await uploadToR2(fileName, req.file.buffer, req.file.mimetype);
+
+    // Salva só o nome do arquivo no banco
     const { rows } = await pool.query(
-      `INSERT INTO photos
-        (file_path, name, taken_date, description)
-       VALUES ($1,$2,$3,$4)
+      `INSERT INTO photos (file_path, name, taken_date, description)
+       VALUES ($1, $2, $3, $4)
        RETURNING *`,
-      [file_path, name, taken_date || null, description || null]
+      [fileName, name, taken_date || null, description || null]
     );
 
     res.status(201).json(rows[0]);
@@ -74,7 +63,7 @@ router.post('/', upload.single('photo'), async (req, res) => {
   }
 });
 
-// remove foto e seus comentários
+// remove foto do banco e do R2
 router.delete('/:id', async (req, res) => {
   try {
     const { id } = req.params;
@@ -84,10 +73,16 @@ router.delete('/:id', async (req, res) => {
     );
     if (rows.length === 0) return res.sendStatus(404);
 
-    const file_path = rows[0].file_path;
+    const fileName = rows[0].file_path;
 
+    // Deleta do banco primeiro
     await pool.query('DELETE FROM photos WHERE id = $1', [id]);
-    fs.unlink(path.join(UPLOAD_FOLDER, file_path), () => {});
+
+    // Depois tenta deletar do R2 (não falha o request se o R2 der erro)
+    deleteFromR2(fileName).catch((err) =>
+      console.warn(`Aviso: falha ao deletar ${fileName} do R2:`, err.message)
+    );
+
     res.sendStatus(200);
   } catch (err) {
     console.error(err);
