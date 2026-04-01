@@ -41,7 +41,7 @@ export default function Login() {
     <div className="min-h-screen bg-gradient-to-br from-purple-100 via-pink-50 to-violet-100 flex items-center justify-center p-4">
       <div className="bg-white rounded-2xl shadow-lg border-2 border-purple-200 p-8 w-full max-w-sm">
         <h1 className="text-2xl font-bold text-purple-800 text-center mb-6">
-          🐾 Pup Pixel
+          Vilevy's romance album
         </h1>
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
