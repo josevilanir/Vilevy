@@ -1,16 +1,17 @@
 import './styles/albumDetails.css'
 import { useEffect, useState } from 'react'
-import { useParams, Link } from 'react-router-dom'
+import { useParams, Link, useNavigate } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import { useToast } from '@/hooks/use-toast'
 import { ArrowLeft } from 'lucide-react'
 
-import { fetchPhotos, type Photo } from '@/services/photoService'
+import { fetchAllPhotos, type Photo } from '@/services/photoService'
 import {
   fetchAlbumPhotos,
   addPhotoToAlbum,
   type PaginatedPhotos
 } from '@/services/albumService'
+import { useAuth } from '@/contexts/AuthContext'
 
 import BackButton from './components/BackButton'
 import AvailablePhotosGrid from './components/AvailablePhotosGrid'
@@ -20,12 +21,18 @@ export default function AlbumAddPhotos() {
   const [allPhotos, setAllPhotos] = useState<Photo[]>([])
   const [albumPhotos, setAlbumPhotos] = useState<Photo[]>([])
   const { toast } = useToast()
+  const { isAuthenticated } = useAuth()
+  const navigate = useNavigate()
+
+  useEffect(() => {
+    if (!isAuthenticated) navigate('/login')
+  }, [isAuthenticated])
 
   const load = async () => {
     if (!albumId) return
     try {
       const [photos, paged] = await Promise.all([
-        fetchPhotos(),
+        fetchAllPhotos(),
         fetchAlbumPhotos(+albumId, 1, 1000)
       ])
       setAllPhotos(photos)

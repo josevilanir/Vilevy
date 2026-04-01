@@ -8,8 +8,11 @@ import PhotoUploader from './components/PhotoUploader'
 import PhotoGrid from './components/PhotoGrid'
 import Lightbox from './components/Lightbox'
 import PhotoEditModal from './components/PhotoEditModal'
+import AlbumPagination from './components/AlbumPagination'
 
-import { API_URL, STORAGE_URL } from '@/config'
+import { STORAGE_URL } from '@/config'
+import { apiFetch } from '@/services/api'
+import { useAuth } from '@/contexts/AuthContext'
 
 type Photo = {
   id: number
@@ -22,10 +25,16 @@ type Photo = {
 type Comment = { id: number; content: string }
 
 export default function Index() {
+  const { isAuthenticated, username, logout } = useAuth()
+
   // Dados principais
   const [photos, setPhotos] = useState<Photo[]>([])
   const [comments, setComments] = useState<Comment[]>([])
   const [newComment, setNewComment] = useState('')
+
+  // Paginação
+  const [currentPage, setCurrentPage] = useState(1)
+  const [totalPages, setTotalPages] = useState(1)
 
   // Upload
   const [uploadingFiles, setUploadingFiles] = useState<any[]>([])
@@ -47,22 +56,29 @@ export default function Index() {
   // -----------------------------
   // Fotos
   // -----------------------------
-  const fetchPhotos = async (query = '') => {
+  const fetchPhotos = async (query = '', page = 1) => {
     try {
-      const res = await fetch(`${API_URL}/photos${query ? `?q=${encodeURIComponent(query)}` : ''}`)
+      const params = new URLSearchParams()
+      if (query) params.set('q', query)
+      params.set('page', String(page))
+      params.set('limit', '12')
+      const res = await apiFetch(`/photos?${params}`)
       if (!res.ok) throw new Error('Erro ao buscar fotos')
-      setPhotos(await res.json())
+      const data = await res.json()
+      setPhotos(data.photos)
+      setTotalPages(data.totalPages)
+      setCurrentPage(data.page)
     } catch (err: any) {
       toast({ title: 'Erro', description: err.message, variant: 'destructive' })
     }
   }
 
-  useEffect(() => { fetchPhotos('') }, [])
+  useEffect(() => { fetchPhotos('', 1) }, [])
 
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value
     setSearch(value)
-    fetchPhotos(value)
+    fetchPhotos(value, 1)
   }
 
   // -----------------------------
@@ -96,11 +112,11 @@ export default function Index() {
     setUploadingFiles(prev => prev.map(f => (f === fileObj ? { ...f, isUploading: true } : f)))
 
     try {
-      const res = await fetch(`${API_URL}/photos`, { method: 'POST', body: formData })
+      const res = await apiFetch('/photos', { method: 'POST', body: formData })
       if (!res.ok) throw new Error('Erro ao fazer upload')
       toast({ title: 'Sucesso', description: 'Foto enviada!' })
       setUploadingFiles(prev => prev.filter(f => f.file !== fileObj.file))
-      fetchPhotos()
+      fetchPhotos(search, 1)
     } catch (err: any) {
       toast({ title: 'Erro', description: err.message, variant: 'destructive' })
       setUploadingFiles(prev => prev.map(f => (f === fileObj ? { ...f, isUploading: false } : f)))
@@ -113,10 +129,10 @@ export default function Index() {
   const deletePhoto = async (photoId: number) => {
     if (!window.confirm('Tem certeza que deseja excluir esta foto?')) return
     try {
-      const res = await fetch(`${API_URL}/photos/${photoId}`, { method: 'DELETE' })
+      const res = await apiFetch(`/photos/${photoId}`, { method: 'DELETE' })
       if (!res.ok) throw new Error('Erro ao excluir foto')
       toast({ title: 'Sucesso', description: 'Foto excluída!' })
-      fetchPhotos()
+      fetchPhotos(search, 1)
       if (lightboxOpen) {
         const idx = photos.findIndex(p => p.id === photoId)
         if (idx === lightboxIndex) setLightboxOpen(false)
@@ -133,7 +149,7 @@ export default function Index() {
 
   const fetchComments = async (photoId: number) => {
     try {
-      const res = await fetch(`${API_URL}/photos/${photoId}/comments`)
+      const res = await apiFetch(`/photos/${photoId}/comments`)
       if (!res.ok) throw new Error('Erro ao buscar comentários')
       setComments(await res.json())
     } catch {
@@ -144,7 +160,7 @@ export default function Index() {
   const addComment = async () => {
     if (!currentPhotoId || !newComment.trim()) return
     try {
-      const res = await fetch(`${API_URL}/photos/${currentPhotoId}/comments`, {
+      const res = await apiFetch(`/photos/${currentPhotoId}/comments`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ content: newComment }),
@@ -160,7 +176,7 @@ export default function Index() {
   const deleteComment = async (commentId: number) => {
     if (!currentPhotoId) return
     try {
-      const res = await fetch(`${API_URL}/photos/${currentPhotoId}/comments/${commentId}`, { method: 'DELETE' })
+      const res = await apiFetch(`/photos/${currentPhotoId}/comments/${commentId}`, { method: 'DELETE' })
       if (!res.ok) throw new Error('Erro ao excluir comentário')
       fetchComments(currentPhotoId)
     } catch (err: any) {
@@ -196,7 +212,7 @@ export default function Index() {
   }
 
   // -----------------------------
-  // Editar (título/descrição) & Download
+  // Editar & Download
   // -----------------------------
   const onEditPhoto = (p: Photo) => {
     setEditPhoto(p)
@@ -206,7 +222,7 @@ export default function Index() {
   const onEditSave = async (values: { name: string; description: string }) => {
     if (!editPhoto) return
     try {
-      const res = await fetch(`${API_URL}/photos/${editPhoto.id}`, {
+      const res = await apiFetch(`/photos/${editPhoto.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(values),
@@ -215,9 +231,8 @@ export default function Index() {
       toast({ title: 'Sucesso', description: 'Foto atualizada!' })
       setEditOpen(false)
       setEditPhoto(null)
-      await fetchPhotos(search)
+      await fetchPhotos(search, currentPage)
       if (lightboxOpen) {
-        // Atualizar comentários/estado se ainda estiver no mesmo índice
         fetchComments(photos[lightboxIndex]?.id)
       }
     } catch (err: any) {
@@ -237,9 +252,20 @@ export default function Index() {
       {/* Cabeçalho */}
       <div className="flex justify-between items-center mb-6 max-w-6xl mx-auto">
         <h1 className="text-2xl font-bold">Fotos</h1>
-        <Button asChild variant="outline">
-          <Link to="/albums">Álbuns</Link>
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button asChild variant="outline">
+            <Link to="/albums">Álbuns</Link>
+          </Button>
+          {isAuthenticated ? (
+            <Button variant="ghost" size="sm" onClick={logout}>
+              Sair ({username})
+            </Button>
+          ) : (
+            <Button asChild variant="outline" size="sm">
+              <Link to="/login">Entrar</Link>
+            </Button>
+          )}
+        </div>
       </div>
 
       {/* Barra de busca */}
@@ -253,24 +279,33 @@ export default function Index() {
         />
       </div>
 
-      {/* Uploader */}
-      <PhotoUploader
-        uploadingFiles={uploadingFiles}
-        setUploadingFiles={setUploadingFiles}
-        startUpload={startUpload}
-        handleFileInput={handleFileInput}
-        fileInputRef={fileInputRef}
-      />
+      {/* Uploader — visível apenas para usuários autenticados */}
+      {isAuthenticated && (
+        <PhotoUploader
+          uploadingFiles={uploadingFiles}
+          setUploadingFiles={setUploadingFiles}
+          startUpload={startUpload}
+          handleFileInput={handleFileInput}
+          fileInputRef={fileInputRef}
+        />
+      )}
 
       {/* Grid */}
       {photos.length > 0 ? (
-        <PhotoGrid
-          photos={photos}
-          onPhotoClick={openLightboxFor}
-          onDeletePhoto={deletePhoto}
-          onEditPhoto={onEditPhoto}
-          onDownloadPhoto={onDownloadPhoto}
-        />
+        <>
+          <PhotoGrid
+            photos={photos}
+            onPhotoClick={openLightboxFor}
+            onDeletePhoto={isAuthenticated ? deletePhoto : undefined}
+            onEditPhoto={isAuthenticated ? onEditPhoto : undefined}
+            onDownloadPhoto={onDownloadPhoto}
+          />
+          <AlbumPagination
+            page={currentPage}
+            totalPages={totalPages}
+            setPage={p => fetchPhotos(search, p)}
+          />
+        </>
       ) : (
         <div className="text-center text-gray-500 mt-16">
           <p className="mb-4 text-xl">Nenhuma foto encontrada 😔</p>
@@ -282,7 +317,7 @@ export default function Index() {
         </div>
       )}
 
-      {/* Lightbox fofinho */}
+      {/* Lightbox */}
       <Lightbox
         photos={photos}
         index={lightboxIndex}
@@ -290,16 +325,12 @@ export default function Index() {
         onClose={() => setLightboxOpen(false)}
         onNext={goNext}
         onPrev={goPrev}
-        onDelete={(idx) => deletePhoto(photos[idx].id)}
-        // comentários
+        onDelete={isAuthenticated ? (idx) => deletePhoto(photos[idx].id) : undefined}
         comments={comments}
         newComment={newComment}
         setNewComment={setNewComment}
-        onAddComment={addComment}
-        onDeleteComment={deleteComment}
-        // opcional: também dá pra passar onEdit/onDownload aqui se quiser no header direito
-        // onEdit={(idx) => onEditPhoto(photos[idx])}
-        // onDownload={(idx) => onDownloadPhoto(photos[idx])}
+        onAddComment={isAuthenticated ? addComment : undefined}
+        onDeleteComment={isAuthenticated ? deleteComment : undefined}
       />
 
       {/* Modal de edição */}

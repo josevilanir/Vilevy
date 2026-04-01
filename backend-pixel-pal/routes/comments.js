@@ -1,10 +1,12 @@
 import express from 'express';
 import { pool } from '../db.js';
+import { AppError } from '../middleware/errorHandler.js';
+import { authenticate } from '../middleware/auth.js';
 
 const router = express.Router({ mergeParams: true });
 
 // Lista comentários de uma foto
-router.get('/', async (req, res) => {
+router.get('/', async (req, res, next) => {
   try {
     const { photoId } = req.params;
     const { rows } = await pool.query(
@@ -13,42 +15,41 @@ router.get('/', async (req, res) => {
     );
     res.json(rows);
   } catch (err) {
-    console.error(err);
-    res.sendStatus(500);
+    next(err);
   }
 });
 
-// adiciona um comentário
-router.post('/', async (req, res) => {
+// Adiciona um comentário
+router.post('/', authenticate, async (req, res, next) => {
   try {
     const { photoId } = req.params;
     const { content } = req.body;
+    if (!content || !content.trim()) {
+      return next(new AppError('Comment content is required.', 400));
+    }
+
     const { rows } = await pool.query(
-      `INSERT INTO comments (photo_id, content)
-       VALUES ($1, $2)
-       RETURNING *`,
-      [photoId, content]
+      `INSERT INTO comments (photo_id, content) VALUES ($1, $2) RETURNING *`,
+      [photoId, content.trim()]
     );
     res.status(201).json(rows[0]);
   } catch (err) {
-    console.error(err);
-    res.sendStatus(500);
+    next(err);
   }
 });
 
-// exclui um comentário
-router.delete('/:commentId', async (req, res) => {
+// Exclui um comentário
+router.delete('/:commentId', authenticate, async (req, res, next) => {
   try {
     const { commentId } = req.params;
     const { rows } = await pool.query(
       'DELETE FROM comments WHERE id = $1 RETURNING *',
       [commentId]
     );
-    if (rows.length === 0) return res.sendStatus(404);
+    if (rows.length === 0) return next(new AppError('Comment not found.', 404));
     res.sendStatus(200);
   } catch (err) {
-    console.error(err);
-    res.sendStatus(500);
+    next(err);
   }
 });
 

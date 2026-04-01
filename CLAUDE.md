@@ -20,7 +20,16 @@ These skills are loaded automatically. Read the relevant SKILL.md before startin
 - **web-artifacts-builder**: [Skill Path](file:///C:/Users/vilan/claude-skills/web-artifacts-builder/SKILL.md)
 - **webapp-testing**: [Skill Path](file:///C:/Users/vilan/claude-skills/webapp-testing/SKILL.md)
 - **skill-creator**: [Skill Path](file:///C:/Users/vilan/claude-skills/skill-creator/SKILL.md)
-- **Other Skills**: `algorithmic-art`, `claude-api`, `doc-coauthoring`, `docx`, `internal-comms`, `mcp-builder`, `pdf`, `pptx`, `slack-gif-creator`, `xlsx`.
+- **algorithmic-art**: [Skill Path](file:///C:/Users/vilan/claude-skills/algorithmic-art/SKILL.md)
+- **claude-api**: [Skill Path](file:///C:/Users/vilan/claude-skills/claude-api/SKILL.md)
+- **doc-coauthoring**: [Skill Path](file:///C:/Users/vilan/claude-skills/doc-coauthoring/SKILL.md)
+- **docx**: [Skill Path](file:///C:/Users/vilan/claude-skills/docx/SKILL.md)
+- **internal-comms**: [Skill Path](file:///C:/Users/vilan/claude-skills/internal-comms/SKILL.md)
+- **mcp-builder**: [Skill Path](file:///C:/Users/vilan/claude-skills/mcp-builder/SKILL.md)
+- **pdf**: [Skill Path](file:///C:/Users/vilan/claude-skills/pdf/SKILL.md)
+- **pptx**: [Skill Path](file:///C:/Users/vilan/claude-skills/pptx/SKILL.md)
+- **slack-gif-creator**: [Skill Path](file:///C:/Users/vilan/claude-skills/slack-gif-creator/SKILL.md)
+- **xlsx**: [Skill Path](file:///C:/Users/vilan/claude-skills/xlsx/SKILL.md)
 
 ## Workflow
 

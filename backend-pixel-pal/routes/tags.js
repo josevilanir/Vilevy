@@ -1,36 +1,38 @@
 import express from 'express';
 import { pool } from '../db.js';
+import { AppError } from '../middleware/errorHandler.js';
+import { authenticate } from '../middleware/auth.js';
 
 const router = express.Router();
 
 // 1) Listar todas as tags
-router.get('/', async (req, res) => {
+router.get('/', async (req, res, next) => {
   try {
     const { rows } = await pool.query('SELECT * FROM tags ORDER BY name');
     res.json(rows);
   } catch (err) {
-    console.error('GET /tags error:', err);
-    res.sendStatus(500);
+    next(err);
   }
 });
 
 // 2) Criar tag (ou retornar existente)
-router.post('/', async (req, res) => {
+router.post('/', authenticate, async (req, res, next) => {
   try {
     const { name } = req.body;
+    if (!name || !name.trim()) return next(new AppError('Tag name is required.', 400));
+
     const result = await pool.query(
       'INSERT INTO tags (name) VALUES ($1) ON CONFLICT (name) DO UPDATE SET name = EXCLUDED.name RETURNING *',
       [name.toLowerCase().trim()]
     );
     res.status(201).json(result.rows[0]);
   } catch (err) {
-    console.error('POST /tags error:', err);
-    res.sendStatus(500);
+    next(err);
   }
 });
 
-// 3) Listar fotos por tag ou busca textual (rota nova /search)
-router.get('/search', async (req, res) => {
+// 3) Listar fotos por tag ou busca textual
+router.get('/search', async (req, res, next) => {
   try {
     const { tag, search } = req.query;
     let query = 'SELECT * FROM photos';
@@ -58,8 +60,7 @@ router.get('/search', async (req, res) => {
     const { rows } = await pool.query(query, params);
     res.json(rows);
   } catch (err) {
-    console.error('GET /tags/search error:', err);
-    res.sendStatus(500);
+    next(err);
   }
 });
 

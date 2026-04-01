@@ -6,12 +6,14 @@ import { useToast } from '@/hooks/use-toast'
 import { useState, useRef } from "react";
 import { setAlbumCover } from '@/services/albumService'
 import { Dialog, DialogContent } from "@/components/ui/dialog";
-import { Star, ArrowUpCircle } from "lucide-react"; // Ou qualquer ícone de sua preferência
+import { Star, ArrowUpCircle } from "lucide-react";
 import { fetchAlbum, fetchAlbumPhotos, type Album, type PaginatedPhotos } from '@/services/albumService'
 import AlbumHeader from './components/AlbumHeader'
 import AlbumPagination from './components/AlbumPagination'
 import { Button } from '@/components/ui/button'
-import { API_URL, STORAGE_URL } from '@/config'
+import { STORAGE_URL } from '@/config'
+import { apiFetch } from '@/services/api'
+import { useAuth } from '@/contexts/AuthContext'
 import PhotoDialog from "./components/photoDialog";
 
 export default function AlbumDetails() {
@@ -24,12 +26,14 @@ export default function AlbumDetails() {
     total: 0,
   })
   const { toast } = useToast()
+  const { isAuthenticated } = useAuth()
   const [isSettingCover, setIsSettingCover] = useState<number | null>(null)
   const [selectedPhoto, setSelectedPhoto] = useState<null | typeof photos[0]>(null);
   const [hoveredPhoto, setHoveredPhoto] = useState(null);
   const [mouse, setMouse] = useState({ x: 0, y: 0 });
   const [photoDialogIdx, setPhotoDialogIdx] = useState<number | null>(null);
   const previewRef = useRef(null);
+
   const loadPage = async (page: number) => {
     if (!albumId) return
     try {
@@ -62,20 +66,17 @@ export default function AlbumDetails() {
   }
 
   const handleRemovePhoto = async (photoId: number) => {
-  if (!confirm("Tem certeza que deseja remover esta foto do álbum?")) return;
-  try {
-    await fetch(`${API_URL}/albums/${album.id}/photos/${photoId}`, {
-      method: "DELETE"
-    });
-    // Remove a foto do array do estado (para sumir da tela sem F5)
-    setAlbumData((data) => ({
-      ...data,
-      photos: data.photos.filter((p: any) => p.id !== photoId)
-    }));
-  } catch (err) {
-    alert("Erro ao remover a foto do álbum.");
-  }
-};
+    if (!confirm("Tem certeza que deseja remover esta foto do álbum?")) return;
+    try {
+      await apiFetch(`/albums/${album!.id}/photos/${photoId}`, { method: 'DELETE' });
+      setAlbumData((data) => ({
+        ...data,
+        photos: data.photos.filter((p: any) => p.id !== photoId)
+      }));
+    } catch (err: any) {
+      toast({ title: 'Erro', description: err.message || 'Erro ao remover foto do álbum.', variant: 'destructive' });
+    }
+  };
 
   const handleMouseMove = e => {
     setMouse({ x: e.clientX, y: e.clientY });
@@ -123,10 +124,10 @@ export default function AlbumDetails() {
       </h2>
       <div
         className="
-          grid grid-cols-1 
-          sm:grid-cols-2 
-          md:grid-cols-3 
-          lg:grid-cols-4 
+          grid grid-cols-1
+          sm:grid-cols-2
+          md:grid-cols-3
+          lg:grid-cols-4
           gap-5 album-photos-grid"
       >
         {photos.length === 0 ? (
@@ -154,9 +155,8 @@ export default function AlbumDetails() {
                 zIndex: 4
               }}
               transition={{ type: "spring", stiffness: 420, damping: 22 }}
-              onClick={() => setPhotoDialogIdx(idx)} 
+              onClick={() => setPhotoDialogIdx(idx)}
             >
-              {/* Área da imagem: ocupa metade do card e nunca deforma */}
               <div className="w-full h-1/2 flex items-center justify-center bg-purple-50 overflow-hidden">
                 <img
                   src={`${STORAGE_URL}/${photo.file_path}`}
@@ -165,7 +165,6 @@ export default function AlbumDetails() {
                   style={{ aspectRatio: '4/5', maxHeight: "100%" }}
                 />
               </div>
-              {/* Área do título/descritivo */}
               <div className="album-photo-caption flex flex-col items-center justify-center w-full mt-2 px-2 flex-1">
                 <div className="flex items-center gap-2 justify-center w-full">
                   <span role="img" aria-label="coala">🐨</span>
@@ -179,38 +178,38 @@ export default function AlbumDetails() {
                   <span className="text-xs text-purple-500 mt-1 text-center w-full line-clamp-2">{photo.description}</span>
                 )}
               </div>
-              <div className="flex justify-end gap-1 mt-2 px-2 pb-2">
-                {/* Botão de definir capa */}
-                <Button
-                  size="icon"
-                  variant={album.cover_photo_id === photo.id ? "secondary" : "outline"}
-                  disabled={album.cover_photo_id === photo.id || isSettingCover === photo.id}
-                  onClick={e => {
-                    e.stopPropagation();
-                    handleSetCover(photo.id);
-                  }}
-                  className="ml-1"
-                  title="Definir como capa"
-                >
-                  {album.cover_photo_id === photo.id
-                    ? <Star size={18} className="text-yellow-400" fill="#facc15" />
-                    : <ArrowUpCircle size={18} className="text-purple-500" />}
-                </Button>
+              {isAuthenticated && (
+                <div className="flex justify-end gap-1 mt-2 px-2 pb-2">
+                  <Button
+                    size="icon"
+                    variant={album.cover_photo_id === photo.id ? "secondary" : "outline"}
+                    disabled={album.cover_photo_id === photo.id || isSettingCover === photo.id}
+                    onClick={e => {
+                      e.stopPropagation();
+                      handleSetCover(photo.id);
+                    }}
+                    className="ml-1"
+                    title="Definir como capa"
+                  >
+                    {album.cover_photo_id === photo.id
+                      ? <Star size={18} className="text-yellow-400" fill="#facc15" />
+                      : <ArrowUpCircle size={18} className="text-purple-500" />}
+                  </Button>
 
-                {/* Botão de remover/desassociar */}
-                <Button
-                  size="icon"
-                  variant="ghost"
-                  onClick={e => {
-                    e.stopPropagation();
-                    handleRemovePhoto(photo.id);
-                  }}
-                  title="Remover do álbum"
-                  className="ml-1"
-              >
-                  <span role="img" aria-label="Remover do álbum">❌</span>
-                </Button>
-              </div>
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    onClick={e => {
+                      e.stopPropagation();
+                      handleRemovePhoto(photo.id);
+                    }}
+                    title="Remover do álbum"
+                    className="ml-1"
+                  >
+                    <span role="img" aria-label="Remover do álbum">❌</span>
+                  </Button>
+                </div>
+              )}
           </motion.div>
         ))
         )}
