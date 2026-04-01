@@ -256,15 +256,9 @@ export default function Index() {
           <Button asChild variant="outline">
             <Link to="/albums">Álbuns</Link>
           </Button>
-          {isAuthenticated ? (
-            <Button variant="ghost" size="sm" onClick={logout}>
-              Sair ({username})
-            </Button>
-          ) : (
-            <Button asChild variant="outline" size="sm">
-              <Link to="/login">Entrar</Link>
-            </Button>
-          )}
+          <Button variant="ghost" size="sm" onClick={logout}>
+            Sair ({username})
+          </Button>
         </div>
       </div>
 
