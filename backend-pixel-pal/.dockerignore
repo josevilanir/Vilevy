@@ -4,3 +4,4 @@ node_modules
 # logs e caches de instalação
 npm-debug.log*
 yarn-debug.log*
+dist

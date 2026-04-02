@@ -8,28 +8,34 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **No Laziness**: Find root causes. No temporary fixes. Senior developer standards.
 - **Minimal Impact**: Only touch what's necessary. Avoid introducing side-effects.
 
+---
+
 ## Skills
 
-These skills are loaded automatically. Read the relevant SKILL.md before starting any task that matches a skill's domain — this is mandatory, not optional.
+These skills are loaded automatically from `/home/jose/claude-skills`. Read the relevant `SKILL.md` before starting any task that matches a skill's domain — this is mandatory, not optional.
 
-- **frontend-design**: [Skill Path](file:///C:/Users/vilan/claude-skills/frontend-design/SKILL.md)
-- **brand-guidelines**: [Skill Path](file:///C:/Users/vilan/claude-skills/brand-guidelines/SKILL.md)
-- **theme-factory**: [Skill Path](file:///C:/Users/vilan/claude-skills/theme-factory/SKILL.md)
-- **design-an-interface**: [Skill Path](file:///C:/Users/vilan/claude-skills/design-an-interface/SKILL.md)
-- **canvas-design**: [Skill Path](file:///C:/Users/vilan/claude-skills/canvas-design/SKILL.md)
-- **web-artifacts-builder**: [Skill Path](file:///C:/Users/vilan/claude-skills/web-artifacts-builder/SKILL.md)
-- **webapp-testing**: [Skill Path](file:///C:/Users/vilan/claude-skills/webapp-testing/SKILL.md)
-- **skill-creator**: [Skill Path](file:///C:/Users/vilan/claude-skills/skill-creator/SKILL.md)
-- **algorithmic-art**: [Skill Path](file:///C:/Users/vilan/claude-skills/algorithmic-art/SKILL.md)
-- **claude-api**: [Skill Path](file:///C:/Users/vilan/claude-skills/claude-api/SKILL.md)
-- **doc-coauthoring**: [Skill Path](file:///C:/Users/vilan/claude-skills/doc-coauthoring/SKILL.md)
-- **docx**: [Skill Path](file:///C:/Users/vilan/claude-skills/docx/SKILL.md)
-- **internal-comms**: [Skill Path](file:///C:/Users/vilan/claude-skills/internal-comms/SKILL.md)
-- **mcp-builder**: [Skill Path](file:///C:/Users/vilan/claude-skills/mcp-builder/SKILL.md)
-- **pdf**: [Skill Path](file:///C:/Users/vilan/claude-skills/pdf/SKILL.md)
-- **pptx**: [Skill Path](file:///C:/Users/vilan/claude-skills/pptx/SKILL.md)
-- **slack-gif-creator**: [Skill Path](file:///C:/Users/vilan/claude-skills/slack-gif-creator/SKILL.md)
-- **xlsx**: [Skill Path](file:///C:/Users/vilan/claude-skills/xlsx/SKILL.md)
+| Skill                   | Path                                                      | When to use                                 |
+| ----------------------- | --------------------------------------------------------- | ------------------------------------------- |
+| `algorithmic-art`       | `/home/jose/claude-skills/algorithmic-art/SKILL.md`       | Generative art, visual algorithms           |
+| `brand-guidelines`      | `/home/jose/claude-skills/brand-guidelines/SKILL.md`      | Brand identity, design consistency          |
+| `canvas-design`         | `/home/jose/claude-skills/canvas-design/SKILL.md`         | HTML Canvas drawing and animation           |
+| `claude-api`            | `/home/jose/claude-skills/claude-api/SKILL.md`            | Anthropic API integration                   |
+| `design-an-interface`   | `/home/jose/claude-skills/design-an-interface/SKILL.md`   | UI/UX design and wireframing                |
+| `doc-coauthoring`       | `/home/jose/claude-skills/doc-coauthoring/SKILL.md`       | Collaborative document editing              |
+| `docx`                  | `/home/jose/claude-skills/docx/SKILL.md`                  | Word documents (.docx) creation and editing |
+| `frontend-design`       | `/home/jose/claude-skills/frontend-design/SKILL.md`       | Frontend UI, components, landing pages      |
+| `internal-comms`        | `/home/jose/claude-skills/internal-comms/SKILL.md`        | Internal messaging, memos, announcements    |
+| `mcp-builder`           | `/home/jose/claude-skills/mcp-builder/SKILL.md`           | MCP server/tool construction                |
+| `pdf`                   | `/home/jose/claude-skills/pdf/SKILL.md`                   | PDF creation, editing, extraction           |
+| `pptx`                  | `/home/jose/claude-skills/pptx/SKILL.md`                  | PowerPoint presentations                    |
+| `skill-creator`         | `/home/jose/claude-skills/skill-creator/SKILL.md`         | Creating and improving skills               |
+| `slack-gif-creator`     | `/home/jose/claude-skills/slack-gif-creator/SKILL.md`     | Animated GIFs for Slack                     |
+| `theme-factory`         | `/home/jose/claude-skills/theme-factory/SKILL.md`         | Design tokens, color themes                 |
+| `webapp-testing`        | `/home/jose/claude-skills/webapp-testing/SKILL.md`        | Web app testing strategies                  |
+| `web-artifacts-builder` | `/home/jose/claude-skills/web-artifacts-builder/SKILL.md` | Standalone web artifacts/demos              |
+| `xlsx`                  | `/home/jose/claude-skills/xlsx/SKILL.md`                  | Excel spreadsheets                          |
+
+---
 
 ## Workflow
 

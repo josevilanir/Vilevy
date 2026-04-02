@@ -1,21 +1,28 @@
 # backend-pixel-pal/Dockerfile
-# Simplificado: sem sqlite3, sem disco local — tudo vai pro Cloudflare R2
+# Multi-stage build: compila TypeScript e gera imagem de produção enxuta
+
+FROM node:20-alpine AS builder
+
+WORKDIR /app
+
+COPY package*.json tsconfig.json ./
+RUN npm ci
+
+COPY src ./src
+RUN npm run build
+
+# ---
 
 FROM node:20-alpine
 
 WORKDIR /app
 
-# Copia manifests de dependências
 COPY package*.json ./
+RUN npm ci --omit=dev
 
-# Instala apenas dependências de produção
-RUN npm install --production
+COPY --from=builder /app/dist ./dist
+COPY migrations ./migrations
 
-# Copia o código
-COPY . .
-
-# Expõe a porta do Express
 EXPOSE 4000
 
-# Inicia o servidor
-CMD ["node", "index.js"]
+CMD ["node", "dist/index.js"]

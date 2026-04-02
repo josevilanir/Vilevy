@@ -13,6 +13,8 @@ import AlbumPagination from './components/AlbumPagination'
 import { STORAGE_URL } from '@/config'
 import { apiFetch } from '@/services/api'
 import { useAuth } from '@/contexts/AuthContext'
+import { fetchAllTags, fetchPhotoTags, fetchPhotosByTag } from '@/services/tagService'
+import type { Tag } from '@/services/tagService'
 
 type Photo = {
   id: number
@@ -42,6 +44,11 @@ export default function Index() {
 
   // Busca
   const [search, setSearch] = useState('')
+
+  // Tags
+  const [allTags, setAllTags] = useState<Tag[]>([])
+  const [selectedTag, setSelectedTag] = useState<string | null>(null)
+  const [photoTags, setPhotoTags] = useState<Tag[]>([])
 
   // Lightbox
   const [lightboxOpen, setLightboxOpen] = useState(false)
@@ -73,12 +80,34 @@ export default function Index() {
     }
   }
 
-  useEffect(() => { fetchPhotos('', 1) }, [])
+  useEffect(() => {
+    fetchPhotos('', 1)
+    fetchAllTags().then(setAllTags).catch(() => {})
+  }, [])
 
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value
     setSearch(value)
+    setSelectedTag(null)
     fetchPhotos(value, 1)
+  }
+
+  const handleTagFilter = async (tagName: string) => {
+    if (selectedTag === tagName) {
+      setSelectedTag(null)
+      fetchPhotos(search, 1)
+      return
+    }
+    setSelectedTag(tagName)
+    setSearch('')
+    try {
+      const tagged = await fetchPhotosByTag(tagName)
+      setPhotos(tagged)
+      setTotalPages(1)
+      setCurrentPage(1)
+    } catch (err: any) {
+      toast({ title: 'Erro', description: err.message, variant: 'destructive' })
+    }
   }
 
   // -----------------------------
@@ -187,18 +216,23 @@ export default function Index() {
   // -----------------------------
   // Lightbox
   // -----------------------------
+  const fetchLightboxData = (photoId: number) => {
+    fetchComments(photoId)
+    fetchPhotoTags(photoId).then(setPhotoTags).catch(() => setPhotoTags([]))
+  }
+
   const openLightboxFor = (photo: Photo) => {
     const idx = photos.findIndex(p => p.id === photo.id)
     const nextIndex = idx >= 0 ? idx : 0
     setLightboxIndex(nextIndex)
     setLightboxOpen(true)
-    fetchComments(photos[nextIndex].id)
+    fetchLightboxData(photos[nextIndex].id)
   }
 
   const goNext = () => {
     setLightboxIndex(prev => {
       const next = (prev + 1) % photos.length
-      fetchComments(photos[next].id)
+      fetchLightboxData(photos[next].id)
       return next
     })
   }
@@ -206,7 +240,7 @@ export default function Index() {
   const goPrev = () => {
     setLightboxIndex(prev => {
       const next = (prev - 1 + photos.length) % photos.length
-      fetchComments(photos[next].id)
+      fetchLightboxData(photos[next].id)
       return next
     })
   }
@@ -263,7 +297,7 @@ export default function Index() {
       </div>
 
       {/* Barra de busca */}
-      <div className="max-w-6xl mx-auto mb-6">
+      <div className="max-w-6xl mx-auto mb-3">
         <input
           type="text"
           placeholder="Buscar fotos por nome ou descrição..."
@@ -272,6 +306,33 @@ export default function Index() {
           className="border p-2 rounded w-full"
         />
       </div>
+
+      {/* Filtro por tags */}
+      {allTags.length > 0 && (
+        <div className="max-w-6xl mx-auto mb-6 flex flex-wrap gap-2">
+          {allTags.map(tag => (
+            <button
+              key={tag.id}
+              onClick={() => handleTagFilter(tag.name)}
+              className={`text-sm px-3 py-1 rounded-full border transition-colors ${
+                selectedTag === tag.name
+                  ? 'bg-purple-500 text-white border-purple-500'
+                  : 'bg-white text-gray-600 border-gray-300 hover:border-purple-400 hover:text-purple-600'
+              }`}
+            >
+              🏷️ {tag.name}
+            </button>
+          ))}
+          {selectedTag && (
+            <button
+              onClick={() => { setSelectedTag(null); fetchPhotos('', 1) }}
+              className="text-sm px-3 py-1 rounded-full border border-red-200 text-red-500 hover:bg-red-50 transition-colors"
+            >
+              ✕ Limpar filtro
+            </button>
+          )}
+        </div>
+      )}
 
       {/* Uploader — visível apenas para usuários autenticados */}
       {isAuthenticated && (
@@ -319,7 +380,9 @@ export default function Index() {
         onClose={() => setLightboxOpen(false)}
         onNext={goNext}
         onPrev={goPrev}
+        onEdit={isAuthenticated ? (idx) => onEditPhoto(photos[idx]) : undefined}
         onDelete={isAuthenticated ? (idx) => deletePhoto(photos[idx].id) : undefined}
+        tags={photoTags}
         comments={comments}
         newComment={newComment}
         setNewComment={setNewComment}

@@ -6,7 +6,14 @@
       "Bash(npx tsc:*)",
       "Bash(npx vite:*)",
       "Bash(npm run:*)",
-      "Bash(node --input-type=module --check)"
+      "Bash(node --input-type=module --check)",
+      "Bash(grep:*)",
+      "Bash(npm --version)",
+      "Bash(npm info:*)",
+      "Bash(npm pack:*)",
+      "Bash(dotenv:*)",
+      "Bash(npx dotenv:*)",
+      "Bash(find /home/jose/Projetos/Vilevy/backend-pixel-pal -name db.ts -o -name schema*)"
     ]
   }
 }

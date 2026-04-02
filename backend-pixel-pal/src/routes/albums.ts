@@ -2,13 +2,13 @@ import express from 'express';
 import { pool } from '../db.js';
 import { AppError } from '../middleware/errorHandler.js';
 import { authenticate } from '../middleware/auth.js';
+import { AlbumRow, PhotoRow } from '../types.js';
 
 const router = express.Router();
 
-// 1) Listar todos os álbuns
-router.get('/', async (req, res, next) => {
+router.get('/', async (_req, res, next) => {
   try {
-    const result = await pool.query(`
+    const result = await pool.query<AlbumRow>(`
       SELECT
         a.*,
         p.file_path AS cover_photo_file_path
@@ -22,15 +22,14 @@ router.get('/', async (req, res, next) => {
   }
 });
 
-// 2) Criar um álbum novo
 router.post('/', authenticate, async (req, res, next) => {
   try {
-    const { name, description } = req.body;
+    const { name, description } = req.body as { name?: string; description?: string };
     if (!name || !name.trim()) return next(new AppError('Album name is required.', 400));
 
-    const { rows } = await pool.query(
+    const { rows } = await pool.query<AlbumRow>(
       `INSERT INTO albums (name, description) VALUES ($1,$2) RETURNING *`,
-      [name.trim(), description || null]
+      [name.trim(), description ?? null]
     );
     res.status(201).json(rows[0]);
   } catch (err) {
@@ -38,11 +37,10 @@ router.post('/', authenticate, async (req, res, next) => {
   }
 });
 
-// 3) Buscar um álbum
 router.get('/:albumId', async (req, res, next) => {
   const { albumId } = req.params;
   try {
-    const result = await pool.query(`
+    const result = await pool.query<AlbumRow>(`
       SELECT
         a.*,
         p.file_path AS cover_photo_file_path
@@ -57,10 +55,9 @@ router.get('/:albumId', async (req, res, next) => {
   }
 });
 
-// 4) Definir capa do álbum
 router.put('/:albumId/cover', authenticate, async (req, res, next) => {
   const { albumId } = req.params;
-  const { photoId } = req.body;
+  const { photoId } = req.body as { photoId?: number };
   try {
     await pool.query(
       'UPDATE albums SET cover_photo_id = $1 WHERE id = $2',
@@ -72,22 +69,21 @@ router.put('/:albumId/cover', authenticate, async (req, res, next) => {
   }
 });
 
-// 5) Listar fotos de um álbum (paginado)
 router.get('/:albumId/photos', async (req, res, next) => {
   const { albumId } = req.params;
-  const page  = parseInt(req.query.page, 10)  || 1;
-  const limit = parseInt(req.query.limit, 10) || 5;
+  const page  = parseInt(req.query['page'] as string, 10)  || 1;
+  const limit = parseInt(req.query['limit'] as string, 10) || 5;
   const offset = (page - 1) * limit;
 
   try {
-    const cnt = await pool.query(
+    const cnt = await pool.query<{ count: string }>(
       'SELECT count(*) FROM photo_albums WHERE album_id = $1',
       [albumId]
     );
     const total = parseInt(cnt.rows[0].count, 10);
     const totalPages = Math.ceil(total / limit) || 1;
 
-    const { rows: photos } = await pool.query(
+    const { rows: photos } = await pool.query<PhotoRow>(
       `SELECT p.id, p.name, p.description, p.file_path, p.taken_date, p.upload_date
        FROM photos p
        JOIN photo_albums pa ON pa.photo_id = p.id
@@ -103,7 +99,6 @@ router.get('/:albumId/photos', async (req, res, next) => {
   }
 });
 
-// 6) Deletar um álbum
 router.delete('/:albumId', authenticate, async (req, res, next) => {
   try {
     const { albumId } = req.params;
@@ -111,18 +106,17 @@ router.delete('/:albumId', authenticate, async (req, res, next) => {
       'DELETE FROM albums WHERE id = $1',
       [albumId]
     );
-    if (rowCount === 0) return next(new AppError('Album not found.', 404));
+    if (!rowCount || rowCount === 0) return next(new AppError('Album not found.', 404));
     res.sendStatus(200);
   } catch (err) {
     next(err);
   }
 });
 
-// 7) Associar uma foto a um álbum
 router.post('/:albumId/photos', authenticate, async (req, res, next) => {
   try {
-    const albumId = parseInt(req.params.albumId, 10);
-    const photoId = parseInt(req.body.photo_id, 10);
+    const albumId = parseInt(String(req.params['albumId']), 10);
+    const photoId = parseInt((req.body as { photo_id?: string }).photo_id ?? '', 10);
 
     if (isNaN(albumId) || isNaN(photoId)) {
       return next(new AppError('albumId e photo_id devem ser números.', 400));
@@ -141,11 +135,10 @@ router.post('/:albumId/photos', authenticate, async (req, res, next) => {
   }
 });
 
-// 8) Desassociar uma foto de um álbum
 router.delete('/:albumId/photos/:photoId', authenticate, async (req, res, next) => {
   try {
-    const albumId = parseInt(req.params.albumId, 10);
-    const photoId = parseInt(req.params.photoId, 10);
+    const albumId = parseInt(String(req.params['albumId']), 10);
+    const photoId = parseInt(String(req.params['photoId']), 10);
 
     if (isNaN(albumId) || isNaN(photoId)) {
       return next(new AppError('albumId e photoId devem ser números.', 400));

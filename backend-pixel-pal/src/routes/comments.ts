@@ -2,14 +2,14 @@ import express from 'express';
 import { pool } from '../db.js';
 import { AppError } from '../middleware/errorHandler.js';
 import { authenticate } from '../middleware/auth.js';
+import { CommentRow } from '../types.js';
 
 const router = express.Router({ mergeParams: true });
 
-// Lista comentários de uma foto
 router.get('/', async (req, res, next) => {
   try {
-    const { photoId } = req.params;
-    const { rows } = await pool.query(
+    const { photoId } = req.params as { photoId: string };
+    const { rows } = await pool.query<CommentRow>(
       'SELECT * FROM comments WHERE photo_id = $1 ORDER BY created_at DESC',
       [photoId]
     );
@@ -19,16 +19,15 @@ router.get('/', async (req, res, next) => {
   }
 });
 
-// Adiciona um comentário
 router.post('/', authenticate, async (req, res, next) => {
   try {
-    const { photoId } = req.params;
-    const { content } = req.body;
+    const { photoId } = req.params as { photoId: string };
+    const { content } = req.body as { content?: string };
     if (!content || !content.trim()) {
       return next(new AppError('Comment content is required.', 400));
     }
 
-    const { rows } = await pool.query(
+    const { rows } = await pool.query<CommentRow>(
       `INSERT INTO comments (photo_id, content) VALUES ($1, $2) RETURNING *`,
       [photoId, content.trim()]
     );
@@ -38,11 +37,10 @@ router.post('/', authenticate, async (req, res, next) => {
   }
 });
 
-// Exclui um comentário
 router.delete('/:commentId', authenticate, async (req, res, next) => {
   try {
     const { commentId } = req.params;
-    const { rows } = await pool.query(
+    const { rows } = await pool.query<CommentRow>(
       'DELETE FROM comments WHERE id = $1 RETURNING *',
       [commentId]
     );

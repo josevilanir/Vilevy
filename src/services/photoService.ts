@@ -1,5 +1,10 @@
 import { apiFetch } from './api'
 
+export interface Tag {
+  id: number
+  name: string
+}
+
 export interface Photo {
   id: number
   name: string

@@ -3,8 +3,10 @@ import { useEffect, useCallback } from "react";
 import { STORAGE_URL } from "@/config";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { ChevronLeft, ChevronRight, X, Download, Edit } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import type { Tag } from "@/services/tagService";
 
 interface Photo {
   id: number;
@@ -24,6 +26,7 @@ export interface LightboxProps {
   onEdit?: (idx: number) => void;
   onDownload?: (idx: number) => void;
   onDelete?: (idx: number) => void;
+  tags?: Tag[];
   comments?: { id: number; content: string }[];
   newComment?: string;
   setNewComment?: (v: string) => void;
@@ -40,6 +43,7 @@ export default function Lightbox({
   onPrev,
   onEdit,
   onDownload,
+  tags = [],
   comments = [],
   newComment = "",
   setNewComment,
@@ -179,6 +183,18 @@ export default function Lightbox({
 
                 {/* Conteúdo rolável */}
                 <div className="p-4 sm:p-6 space-y-4">
+                  {/* Tags */}
+                  {tags.length > 0 && (
+                    <div>
+                      <h3 className="font-semibold text-gray-800 dark:text-gray-200 mb-2">Tags 🏷️</h3>
+                      <div className="flex flex-wrap gap-1">
+                        {tags.map(tag => (
+                          <Badge key={tag.id} variant="secondary">{tag.name}</Badge>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
                   {/* Description */}
                   <div>
                     <h3 className="font-semibold text-gray-800 dark:text-gray-200 mb-2">Description 🌿</h3>
